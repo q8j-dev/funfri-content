@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>KatyISD Logo.svg</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Unbounded:wght@900&display=swap" rel="stylesheet" />
+    <style>
+      html {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #000000;
+        overflow-y: auto;
+        overflow-x: hidden;
+        overscroll-behavior: none;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        min-height: 100%;
+        background-color: #000000;
+        color: #ffffff;
+        font-family: Arial, sans-serif;
+        overscroll-behavior: none;
+      }
+      #top {
+        position: relative;
+        padding: 46px 24px 6px 24px;
+        text-align: center;
+      }
+      #logo {
+        position: relative;
+        user-select: none;
+        font-family: "Unbounded", sans-serif;
+        font-weight: 900;
+        font-size: 60px;
+        line-height: 64px;
+        letter-spacing: -0.03em;
+        color: #ffffff;
+        background: linear-gradient(180deg, #ffffff 30%, #8d8d8d 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      #attribution {
+        position: relative;
+        margin-top: 6px;
+        user-select: none;
+        font-family: "Space Grotesk", sans-serif;
+        font-weight: 500;
+        font-size: 13px;
+        line-height: 16px;
+        letter-spacing: 0.02em;
+        color: #6f6f6f;
+      }
+      #attribution a {
+        color: #d0d0d0;
+        font-weight: 600;
+        text-decoration: none;
+        transition: color 0.2s;
+      }
+      #attribution a:hover {
+        color: #ffffff;
+      }
+      #search-container {
+        position: relative;
+        padding: 26px 0 0 0;
+      }
+      #search-wrap {
+        position: relative;
+        width: 100%;
+        max-width: 480px;
+        margin: 0 auto;
+      }
+      #search-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        width: 18px;
+        height: 18px;
+        transform: translateY(-50%);
+        stroke: #777777;
+        fill: none;
+        stroke-width: 2;
+        stroke-linecap: round;
+        pointer-events: none;
+        transition: stroke 0.2s;
+      }
+      #search-bar {
+        width: 100%;
+        height: 50px;
+        padding: 0 52px 0 46px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background-color: rgba(255, 255, 255, 0.04);
+        color: #ffffff;
+        caret-color: #ffffff;
+        font-size: 15px;
+        font-family: "Space Grotesk", Arial, sans-serif;
+        font-weight: 500;
+        letter-spacing: 0.01em;
+        outline: none;
+        transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+        box-sizing: border-box;
+      }
+      #search-bar::placeholder {
+        color: #7a7a7a;
+        opacity: 1;
+      }
+      #search-bar:hover {
+        border-color: rgba(255, 255, 255, 0.22);
+      }
+      #search-bar:focus {
+        border-color: rgba(255, 255, 255, 0.6);
+        background-color: rgba(255, 255, 255, 0.07);
+        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.07), 0 10px 30px rgba(0, 0, 0, 0.5);
+      }
+      #search-wrap:focus-within #search-icon {
+        stroke: #ffffff;
+      }
+      #search-hint {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        min-width: 22px;
+        height: 22px;
+        box-sizing: border-box;
+        padding: 0 6px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 6px;
+        font-family: "Space Grotesk", Arial, sans-serif;
+        font-weight: 600;
+        font-size: 12px;
+        line-height: 20px;
+        color: #8a8a8a;
+        pointer-events: none;
+        transition: opacity 0.15s;
+      }
+      #search-bar:focus ~ #search-hint,
+      #search-bar:not(:placeholder-shown) ~ #search-hint {
+        opacity: 0;
+      }
+      #container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 25px;
+        justify-content: center;
+        padding: 30px;
+      }
+      .zone-item {
+        position: relative;
+        isolation: isolate;
+        box-sizing: border-box;
+        background-color: #111111;
+        border: 2px solid #333333;
+        border-radius: 24px;
+        width: 180px;
+        aspect-ratio: 1 / 1;
+        text-align: center;
+        cursor: pointer;
+        transition: transform 0.25s ease, border-color 0.25s ease;
+      }
+      .zone-item.glow-ready::before {
+        content: "";
+        position: absolute;
+        inset: -4px;
+        z-index: -1;
+        border-radius: 28px;
+        background: var(--cover) center / cover no-repeat;
+        filter: blur(22px) saturate(1.4);
+        opacity: 0;
+        transform: scale(1.06);
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+      }
+      .zone-item:hover {
+        transform: scale(1.05);
+        border-color: rgba(255, 255, 255, 0.85);
+      }
+      .zone-item.glow-ready:hover::before {
+        opacity: 0.9;
+        animation: glow-in 0.3s ease;
+      }
+      @keyframes glow-in {
+        from { opacity: 0; }
+        to { opacity: 0.9; }
+      }
+      .zone-item img.zone-cover {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 22px;
+        pointer-events: none;
+      }
+      .zone-item img.zone-cover.fit-whole {
+        object-fit: contain;
+        background-color: #111111;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .zone-item,
+        .zone-item.glow-ready::before { transition: none; }
+        .zone-item:hover { transform: none; }
+      }
+      .zone-item::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 62%;
+        z-index: 0;
+        border-radius: 0 0 22px 22px;
+        background: linear-gradient(to top,
+          rgba(0, 0, 0, 0.66) 0%,
+          rgba(0, 0, 0, 0.52) 22%,
+          rgba(0, 0, 0, 0.32) 45%,
+          rgba(0, 0, 0, 0.14) 68%,
+          rgba(0, 0, 0, 0.04) 86%,
+          rgba(0, 0, 0, 0) 100%);
+        pointer-events: none;
+      }
+      .zone-name {
+        position: absolute;
+        z-index: 1;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        box-sizing: border-box;
+        padding: 0 16px 15px 16px;
+        text-align: left;
+        font-family: "Space Grotesk", sans-serif;
+        font-weight: 600;
+        font-size: 14px;
+        line-height: 17px;
+        letter-spacing: -0.005em;
+        color: #ffffff;
+        text-shadow: 0 1px 10px rgba(0, 0, 0, 0.55);
+        overflow-wrap: anywhere;
+        pointer-events: none;
+      }
+      #status-text {
+        width: 100%;
+        text-align: center;
+        margin-top: 20px;
+        font-family: Arial, sans-serif;
+        font-size: 16px;
+        line-height: 22px;
+        color: #ffffff;
+      }
+    </style>
+  </head>
+  <body>
+    <header id="top">
+      <div id="logo"></div>
+      <div id="attribution"></div>
+      <div id="search-container">
+        <div id="search-wrap">
+          <svg id="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+          <input type="text" id="search-bar" placeholder="Search games..." spellcheck="false" autocomplete="off" />
+          <span id="search-hint" aria-hidden="true">/</span>
+        </div>
+      </div>
+    </header>
+    <div id="container"></div>
+
+    <script>
+      const container = document.getElementById('container');
+      const searchBar = document.getElementById('search-bar');
+      const logoEl = document.getElementById('logo');
+      const attributionEl = document.getElementById('attribution');
+      const htmlNS = "http://www.w3.org/1999/xhtml";
+
+      const zonesURL = "https://rawcdn.githack.com/freebuisness/assets/main/zones.json";
+      const coverURL = "https://rawcdn.githack.com/freebuisness/covers/main";
+      const htmlURL = "https://rawcdn.githack.com/freebuisness/html/main";
+
+      let allZones = [];
+
+      const isChromebook = /\bCrOS\b/.test(navigator.userAgent || "");
+
+      function showBlocked() {
+          document.body.innerHTML = "";
+          const box = document.createElement("div");
+          box.style.cssText = "position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;background:#000;color:#fff;font-family:'Space Grotesk',Arial,sans-serif;font-size:18px;font-weight:500;";
+          box.textContent = "This page is only available on Chromebooks.";
+          document.body.appendChild(box);
+      }
+
+      document.addEventListener("keydown", (e) => {
+          const typing = /^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || "");
+          if (e.key === "/" && !typing && !e.ctrlKey && !e.metaKey && !e.altKey) {
+              e.preventDefault();
+              searchBar.focus();
+          } else if (e.key === "Escape" && document.activeElement === searchBar) {
+              searchBar.value = "";
+              searchBar.dispatchEvent(new Event("input"));
+              searchBar.blur();
+          }
+      });
+
+      searchBar.addEventListener("input", (e) => {
+          const term = e.target.value.toLowerCase();
+          const filtered = allZones.filter(file => file.name.toLowerCase().includes(term));
+          displayZones(filtered);
+      });
+
+      container.addEventListener("pointerover", (e) => {
+          const card = e.target.closest ? e.target.closest(".zone-item") : null;
+          if (!card || card.classList.contains("glow-ready")) return;
+          card.style.setProperty("--cover", 'url("' + card.dataset.cover + '")');
+          card.classList.add("glow-ready");
+      });
+
+      async function listZones() {
+          try {
+              const response = await fetch(zonesURL + "?t=" + Date.now());
+              const data = await response.json();
+
+              allZones = data.sort((a, b) => a.name.localeCompare(b.name));
+
+              displayZones(allZones);
+          } catch (error) {
+              console.error(error);
+              container.innerHTML = "";
+              const status = document.createElementNS(htmlNS, "div");
+              status.setAttribute("id", "status-text");
+              container.appendChild(status);
+              status.textContent = "Error loading games: " + error;
+          }
+      }
+
+      function displayZones(zones) {
+          container.innerHTML = "";
+          zones.forEach(file => {
+              if (file.id === -1) return;
+              if (String(file.name).trim() === "[!] COMMENTS") return;
+
+              const zoneItem = document.createElementNS(htmlNS, "div");
+              zoneItem.setAttribute("class", "zone-item");
+              zoneItem.onclick = () => openZone(file);
+
+              const img = document.createElementNS(htmlNS, "img");
+              img.setAttribute("class", "zone-cover");
+              const coverSrc = file.cover.replace("{COVER_URL}", coverURL).replace("{HTML_URL}", htmlURL);
+              zoneItem.dataset.cover = coverSrc;
+              img.addEventListener("load", () => {
+                  const r = img.naturalWidth / (img.naturalHeight || 1);
+                  if (Math.abs(r - 1) > 0.01) img.classList.add("fit-whole");
+              });
+              img.setAttribute("src", coverSrc);
+              img.setAttribute("alt", "");
+              img.setAttribute("loading", "lazy");
+              img.setAttribute("decoding", "async");
+
+              const title = document.createElementNS(htmlNS, "div");
+              title.setAttribute("class", "zone-name");
+              const fullName = String(file.name);
+              title.textContent = fullName;
+              zoneItem.setAttribute("title", fullName);
+
+              zoneItem.appendChild(img);
+              zoneItem.appendChild(title);
+              container.appendChild(zoneItem);
+          });
+      }
+
+      function openZone(file) {
+          if (!isChromebook) return;
+          if (file.url.startsWith("http")) {
+              window.open(file.url, "_blank");
+          } else {
+              const url = file.url.replace("{COVER_URL}", coverURL).replace("{HTML_URL}", htmlURL);
+
+              const newWindow = window.open("about:blank", "_blank");
+
+              if (!newWindow) {
+                  alert("Popup blocked! Your browser is preventing the new tab from opening. Please allow pop-ups for this file.");
+                  return;
+              }
+
+              const TAB_TITLE = "image.svg";
+              const doc = newWindow.document;
+
+              doc.open();
+              doc.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + TAB_TITLE + '</title>' +
+                  '<style>html,body{margin:0;padding:0;height:100%;background:#000;overflow:hidden}' +
+                  '#msg{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-family:Arial,sans-serif}' +
+                  '#frame{position:fixed;inset:0;width:100%;height:100%;border:0;background:#000}</style>' +
+                  '</head><body><div id="msg"><h2>Loading game...</h2></div></body></html>');
+              doc.close();
+
+              const frame = doc.createElement("iframe");
+              frame.id = "frame";
+              frame.setAttribute("allow", "fullscreen; autoplay; gamepad; clipboard-write");
+              frame.onload = () => {
+                  const msg = doc.getElementById("msg");
+                  if (msg) msg.remove();
+                  doc.title = TAB_TITLE;
+              };
+              frame.src = url + "?t=" + Date.now();
+              doc.body.appendChild(frame);
+          }
+      }
+
+      async function start() {
+          try {
+              await document.fonts.load("900 56px Unbounded");
+              await document.fonts.load("600 15px \"Space Grotesk\"");
+              await document.fonts.ready;
+          } catch (e) {}
+
+          logoEl.textContent = "FunFri";
+
+          attributionEl.textContent = "this is a wrapper of ";
+          const gnMathLink = document.createElementNS(htmlNS, "a");
+          gnMathLink.setAttribute("href", "http://gn-math.dev/");
+          gnMathLink.setAttribute("target", "_blank");
+          gnMathLink.setAttribute("rel", "noopener");
+          gnMathLink.textContent = "gn-math";
+          attributionEl.appendChild(gnMathLink);
+
+          container.innerHTML = "";
+          const status = document.createElementNS(htmlNS, "div");
+          status.setAttribute("id", "status-text");
+          status.textContent = "Loading games...";
+          container.appendChild(status);
+
+          listZones();
+      }
+
+      if (isChromebook) {
+          start();
+      } else {
+          showBlocked();
+      }
+    </script>
+  </body>
+</html>
