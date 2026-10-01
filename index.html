@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>KatyISD Logo.svg</title>
+    <title>McDonalds Logo.svg</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Unbounded:wght@900&display=swap" rel="stylesheet" />
@@ -281,16 +281,6 @@
 
       let allZones = [];
 
-      const isChromebook = /\bCrOS\b/.test(navigator.userAgent || "");
-
-      function showBlocked() {
-          document.body.innerHTML = "";
-          const box = document.createElement("div");
-          box.style.cssText = "position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;background:#000;color:#fff;font-family:'Space Grotesk',Arial,sans-serif;font-size:18px;font-weight:500;";
-          box.textContent = "This page is only available on Chromebooks.";
-          document.body.appendChild(box);
-      }
-
       document.addEventListener("keydown", (e) => {
           const typing = /^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || "");
           if (e.key === "/" && !typing && !e.ctrlKey && !e.metaKey && !e.altKey) {
@@ -370,7 +360,6 @@
       }
 
       function openZone(file) {
-          if (!isChromebook) return;
           if (file.url.startsWith("http")) {
               window.open(file.url, "_blank");
           } else {
@@ -433,11 +422,7 @@
           listZones();
       }
 
-      if (isChromebook) {
-          start();
-      } else {
-          showBlocked();
-      }
+      start();
     </script>
   </body>
 </html>
