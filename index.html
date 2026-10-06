@@ -1816,6 +1816,10 @@
           gnMathLink.setAttribute("rel", "noopener");
           gnMathLink.textContent = "gn-math";
           attributionEl.appendChild(gnMathLink);
+          attributionEl.appendChild(document.createElementNS(htmlNS, "br"));
+          const shoutout = document.createElementNS(htmlNS, "span");
+          shoutout.textContent = "shoutout to caleb parrish for going on the proxies in class ❤️";
+          attributionEl.appendChild(shoutout);
 
           container.innerHTML = "";
           const status = document.createElementNS(htmlNS, "div");
