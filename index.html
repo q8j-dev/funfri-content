@@ -1187,17 +1187,43 @@
       }
 
       function guardTab() {
-          window.close = () => {};
-          window.addEventListener("beforeunload", (e) => {
+          window.close = function() {};
+          var origOpen = window.open;
+          window.open = function(url, target) {
+              var t = (target || "_blank").toLowerCase();
+              if (t === "_self" || t === "_top" || t === "_parent") return null;
+              return origOpen.apply(this, arguments);
+          };
+          document.addEventListener("click", function(e) {
+              var a = e.target && e.target.closest ? e.target.closest("a") : null;
+              if (!a || !a.href) return;
+              var t = (a.target || "").toLowerCase();
+              if (t === "_blank") return;
               e.preventDefault();
-              e.returnValue = "";
-          });
-          if (!window.navigation) return;
-          window.navigation.addEventListener("navigate", (e) => {
-              if (!e.cancelable || e.hashChange || e.destination.sameDocument) return;
-              if (e.downloadRequest !== null || e.navigationType === "reload") return;
+              e.stopImmediatePropagation();
+          }, true);
+          document.addEventListener("submit", function(e) {
+              if (e.target.target && e.target.target.toLowerCase() === "_blank") return;
               e.preventDefault();
-          });
+          }, true);
+          HTMLFormElement.prototype.submit = function() {};
+          if (HTMLFormElement.prototype.requestSubmit) HTMLFormElement.prototype.requestSubmit = function() {};
+          new MutationObserver(function(list) {
+              list.forEach(function(m) {
+                  m.addedNodes.forEach(function(n) {
+                      if (n.nodeType !== 1) return;
+                      if (n.matches && n.matches('meta[http-equiv="refresh" i]')) n.remove();
+                      if (n.querySelectorAll) n.querySelectorAll('meta[http-equiv="refresh" i]').forEach(function(el) { el.remove(); });
+                  });
+              });
+          }).observe(document.documentElement || document, { childList: true, subtree: true });
+          if (window.navigation) {
+              window.navigation.addEventListener("navigate", function(e) {
+                  if (!e.cancelable || e.hashChange || e.destination.sameDocument) return;
+                  if (e.downloadRequest !== null || e.navigationType === "reload") return;
+                  e.preventDefault();
+              });
+          }
       }
 
       async function openZone(file) {
@@ -1229,14 +1255,12 @@
               if (!response.ok) throw new Error("HTTP " + response.status);
               let html = await response.text();
               let lead = "<script>(" + guardTab.toString() + ")();<\/script>";
+              lead += "<script>document.title='" + TAB_TITLE + "';<\/script>";
               if (!/<base[\s>]/i.test(html)) lead += '<base href="' + url + '">';
               html = /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, match => match + lead) : lead + html;
               if (newWindow.closed) return;
-
-              doc.open();
-              doc.write(html);
-              doc.close();
-              doc.title = TAB_TITLE;
+              var blob = new Blob([html], { type: "text/html" });
+              newWindow.location.href = URL.createObjectURL(blob);
           } catch (error) {
               console.error(error);
               if (newWindow.closed) return;
