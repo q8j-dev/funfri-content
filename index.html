@@ -1186,6 +1186,20 @@
           }
       }
 
+      function guardTab() {
+          window.close = () => {};
+          window.addEventListener("beforeunload", (e) => {
+              e.preventDefault();
+              e.returnValue = "";
+          });
+          if (!window.navigation) return;
+          window.navigation.addEventListener("navigate", (e) => {
+              if (!e.cancelable || e.hashChange || e.destination.sameDocument) return;
+              if (e.downloadRequest !== null || e.navigationType === "reload") return;
+              e.preventDefault();
+          });
+      }
+
       async function openZone(file) {
           if (file.url.startsWith("http")) {
               window.open(file.url, "_blank");
@@ -1214,10 +1228,9 @@
               const response = await fetch(url + "?t=" + Date.now());
               if (!response.ok) throw new Error("HTTP " + response.status);
               let html = await response.text();
-              if (!/<base[\s>]/i.test(html)) {
-                  const base = '<base href="' + url + '">';
-                  html = /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, match => match + base) : base + html;
-              }
+              let lead = "<script>(" + guardTab.toString() + ")();<\/script>";
+              if (!/<base[\s>]/i.test(html)) lead += '<base href="' + url + '">';
+              html = /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, match => match + lead) : lead + html;
               if (newWindow.closed) return;
 
               doc.open();
@@ -1736,6 +1749,7 @@
       }
 
       async function start() {
+          guardTab();
           watchScene();
           const zonesReady = loadZones();
           zonesReady.catch(() => {});
