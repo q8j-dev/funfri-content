@@ -2205,6 +2205,8 @@
           reportLink.setAttribute("rel", "noopener");
           reportLink.textContent = "report broken games";
           notice.appendChild(reportLink);
+          notice.appendChild(document.createElementNS(htmlNS, "br"));
+          notice.appendChild(document.createTextNode("funfri is not a proxy and it never will be."));
           attributionEl.appendChild(notice);
 
           calebVirus();
