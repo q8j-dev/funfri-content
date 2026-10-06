@@ -4,34 +4,77 @@
     <meta charset="utf-8" />
     <title>Tab</title>
     <script>
-      function guardTab() {
-          window.close = function() {};
-          var origOpen = window.open;
-          window.open = function(url, target) {
-              var t = String(target || "_blank").toLowerCase();
-              if (t === "_self" || t === "_top" || t === "_parent") return null;
-              return origOpen.apply(this, arguments);
-          };
-          document.addEventListener("click", function(e) {
+      function guardTab(strict) {
+          function seal(win) {
+              var open = win.open;
+              win.close = function() {};
+              win.open = function(url, target) {
+                  var t = String(target || "_blank").toLowerCase();
+                  if (strict || t === "_self" || t === "_top" || t === "_parent") return null;
+                  return open.apply(win, arguments);
+              };
+              win.open.sealed = true;
+          }
+          function opensTab(node) {
+              return String(node.getAttribute("target") || "").toLowerCase() === "_blank";
+          }
+          function leaves(a) {
+              if (!a.hasAttribute("href") || a.hasAttribute("download")) return false;
+              if (/^\s*javascript:/i.test(a.getAttribute("href"))) return false;
+              if (!strict && opensTab(a)) return false;
+              return String(a.href).split("#")[0] !== location.href.split("#")[0];
+          }
+          function stopLink(e) {
               var a = e.target && e.target.closest ? e.target.closest("a[href]") : null;
-              if (!a || a.hasAttribute("download")) return;
-              if (String(a.getAttribute("target") || "").toLowerCase() === "_blank") return;
-              if (/^\s*javascript:/i.test(a.getAttribute("href"))) return;
-              if (typeof a.href === "string" && a.href.split("#")[0] === location.href.split("#")[0]) return;
-              e.preventDefault();
-          }, true);
+              if (a && leaves(a)) e.preventDefault();
+          }
+          function each(node, selector, run) {
+              if (node.matches(selector)) run(node);
+              node.querySelectorAll(selector).forEach(run);
+          }
+          var frameWindow = Object.getOwnPropertyDescriptor(HTMLIFrameElement.prototype, "contentWindow").get;
+          function sealFrame(frame) {
+              try {
+                  var win = frameWindow.call(frame);
+                  if (win && !win.open.sealed) seal(win);
+              } catch (error) {}
+          }
+          function watchFrame(frame) {
+              sealFrame(frame);
+              frame.addEventListener("load", function() { sealFrame(frame); });
+          }
+          var nativeClick = HTMLAnchorElement.prototype.click;
+          seal(window);
+          document.addEventListener("click", stopLink, true);
+          HTMLAnchorElement.prototype.click = function() {
+              if (!leaves(this)) nativeClick.call(this);
+          };
+          HTMLAnchorElement.prototype.dispatchEvent = function(event) {
+              if (event && event.type === "click" && leaves(this)) return false;
+              return EventTarget.prototype.dispatchEvent.call(this, event);
+          };
           document.addEventListener("submit", function(e) {
               var form = e.target;
-              if (form && form.getAttribute && String(form.getAttribute("target") || "").toLowerCase() === "_blank") return;
+              if (!strict && form && form.getAttribute && opensTab(form)) return;
               e.preventDefault();
           }, true);
           HTMLFormElement.prototype.submit = function() {};
+          if (strict) {
+              document.addEventListener("auxclick", stopLink, true);
+              Object.defineProperty(HTMLIFrameElement.prototype, "contentWindow", {
+                  configurable: true,
+                  get: function() {
+                      sealFrame(this);
+                      return frameWindow.call(this);
+                  }
+              });
+          }
           new MutationObserver(function(list) {
               list.forEach(function(m) {
                   m.addedNodes.forEach(function(n) {
                       if (n.nodeType !== 1) return;
-                      if (n.matches && n.matches('meta[http-equiv="refresh" i]')) n.remove();
-                      if (n.querySelectorAll) n.querySelectorAll('meta[http-equiv="refresh" i]').forEach(function(el) { el.remove(); });
+                      each(n, 'meta[http-equiv="refresh" i]', function(el) { el.remove(); });
+                      if (strict) each(n, "iframe", watchFrame);
                   });
               });
           }).observe(document, { childList: true, subtree: true });
@@ -1394,7 +1437,7 @@
               }
           }
           if (html === undefined) throw failure;
-          let lead = "<script>(" + guardTab + ")();(" + realAddress + ")();<\/script>";
+          let lead = "<script>(" + guardTab + ")(true);(" + realAddress + ")();<\/script>";
           if (!/<base[\s>]/i.test(html)) lead += '<base href="' + url + '">';
           const anchor = [/<head(\s[^>]*)?>/i, /<html(\s[^>]*)?>/i, /<!doctype[^>]*>/i].find(tag => tag.test(html));
           html = anchor ? html.replace(anchor, found => found + lead) : lead + html;
