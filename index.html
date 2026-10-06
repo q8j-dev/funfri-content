@@ -59,16 +59,6 @@
           document.title = "Tab";
           addEventListener("load", function() { document.title = "Tab"; });
       }
-
-      function waitForGame(id) {
-          var channel = new BroadcastChannel("funfri-game");
-          channel.onmessage = function(e) {
-              if (!e.data || e.data.id !== id) return;
-              if (e.data.url) location.replace(e.data.url);
-              else document.querySelector("#msg h2").textContent = "Error loading game: " + e.data.error;
-          };
-          channel.postMessage({ want: id });
-      }
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
@@ -868,6 +858,12 @@
           if (entry) openZone(entry.file);
       });
 
+      container.addEventListener("pointerdown", (e) => {
+          const card = e.target.closest ? e.target.closest(".zone-item") : null;
+          const entry = card ? entryByCard.get(card) : null;
+          if (entry && !entry.file.url.startsWith("http")) gamePage(entry.file).catch(() => {});
+      });
+
       container.addEventListener("pointerover", (e) => {
           const card = e.target.closest ? e.target.closest(".zone-item") : null;
           if (!card) return;
@@ -1253,18 +1249,7 @@
           }
       }
 
-      const gameChannel = new BroadcastChannel("funfri-game");
       const gamePages = new Map();
-
-      gameChannel.onmessage = (e) => {
-          const id = e.data && e.data.want;
-          const game = gamePages.get(id);
-          if (!game) return;
-          game.then(
-              url => gameChannel.postMessage({ id, url }),
-              error => gameChannel.postMessage({ id, error: String(error) })
-          );
-      };
 
       function blobPage(html) {
           return URL.createObjectURL(new Blob([html], { type: "text/html;charset=utf-8" }));
@@ -1281,23 +1266,33 @@
           return blobPage(html);
       }
 
-      function openZone(file) {
+      function gamePage(file) {
+          const url = file.url.replace("{COVER_URL}", coverURL).replace("{HTML_URL}", htmlURL);
+          let page = gamePages.get(url);
+          if (!page) {
+              page = buildGame(url);
+              page.catch(() => gamePages.delete(url));
+              gamePages.set(url, page);
+          }
+          return page;
+      }
+
+      async function openZone(file) {
           if (file.url.startsWith("http")) {
               window.open(file.url, "_blank");
               return;
           }
 
-          const url = file.url.replace("{COVER_URL}", coverURL).replace("{HTML_URL}", htmlURL);
-          const id = Date.now().toString(36) + Math.random().toString(36).slice(2);
-          const game = buildGame(url);
-          game.catch(() => {});
-          gamePages.set(id, game);
-
-          window.open(blobPage('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Tab</title>' +
-              '<style>html,body{margin:0;padding:0;height:100%;background:#000;overflow:hidden}' +
-              '#msg{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-family:Arial,sans-serif}</style>' +
-              '</head><body><div id="msg"><h2>Loading game...</h2></div>' +
-              "<script>(" + waitForGame + ")(" + JSON.stringify(id) + ");<\/script></body></html>"), "_blank", "noopener");
+          let page;
+          try {
+              page = await gamePage(file);
+          } catch (error) {
+              const message = String(error).replace(/[&<>]/g, c => "&#" + c.charCodeAt(0) + ";");
+              page = blobPage('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Tab</title>' +
+                  '<style>html,body{margin:0;height:100%;background:#000;color:#fff;font-family:Arial,sans-serif;display:flex;align-items:center;justify-content:center}</style>' +
+                  '</head><body><h2>Error loading game: ' + message + '</h2></body></html>');
+          }
+          window.open(page, "_blank", "noopener");
       }
 
       function loadScene() {
