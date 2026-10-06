@@ -3,6 +3,85 @@
   <head>
     <meta charset="utf-8" />
     <title>Tab</title>
+    <script>
+      function guardTab() {
+          window.close = function() {};
+          var origOpen = window.open;
+          window.open = function(url, target) {
+              var t = String(target || "_blank").toLowerCase();
+              if (t === "_self" || t === "_top" || t === "_parent") return null;
+              return origOpen.apply(this, arguments);
+          };
+          document.addEventListener("click", function(e) {
+              var a = e.target && e.target.closest ? e.target.closest("a[href]") : null;
+              if (!a || a.hasAttribute("download")) return;
+              if (String(a.getAttribute("target") || "").toLowerCase() === "_blank") return;
+              if (/^\s*javascript:/i.test(a.getAttribute("href"))) return;
+              if (typeof a.href === "string" && a.href.split("#")[0] === location.href.split("#")[0]) return;
+              e.preventDefault();
+          }, true);
+          document.addEventListener("submit", function(e) {
+              var form = e.target;
+              if (form && form.getAttribute && String(form.getAttribute("target") || "").toLowerCase() === "_blank") return;
+              e.preventDefault();
+          }, true);
+          HTMLFormElement.prototype.submit = function() {};
+          new MutationObserver(function(list) {
+              list.forEach(function(m) {
+                  m.addedNodes.forEach(function(n) {
+                      if (n.nodeType !== 1) return;
+                      if (n.matches && n.matches('meta[http-equiv="refresh" i]')) n.remove();
+                      if (n.querySelectorAll) n.querySelectorAll('meta[http-equiv="refresh" i]').forEach(function(el) { el.remove(); });
+                  });
+              });
+          }).observe(document, { childList: true, subtree: true });
+          if (window.navigation) {
+              window.navigation.addEventListener("navigate", function(e) {
+                  if (!e.cancelable || e.hashChange || e.destination.sameDocument) return;
+                  if (e.downloadRequest !== null || e.navigationType === "reload") return;
+                  e.preventDefault();
+              });
+          }
+      }
+
+      (function() {
+          var match = /^#play=(.+)$/.exec(location.hash);
+          if (!match) return;
+          var game;
+          try {
+              game = new URL(decodeURIComponent(match[1]));
+          } catch (e) {
+              return;
+          }
+          if (game.origin !== "https://rawcdn.githack.com" || game.pathname.indexOf("/freebuisness/") !== 0) return;
+
+          document.write("<template>");
+          document.addEventListener("DOMContentLoaded", function() {
+              document.open();
+              document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Tab</title>' +
+                  '<style>html,body{margin:0;padding:0;height:100%;background:#000;overflow:hidden}' +
+                  '#msg{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-family:Arial,sans-serif}</style>' +
+                  '</head><body><div id="msg"><h2>Loading game...</h2></div></body></html>');
+              document.close();
+
+              fetch(game.href + "?t=" + Date.now()).then(function(response) {
+                  if (!response.ok) throw new Error("HTTP " + response.status);
+                  return response.text();
+              }).then(function(html) {
+                  var lead = "<script>(" + guardTab.toString() + ")();document.title=\"Tab\";<\/script>";
+                  if (!/<base[\s>]/i.test(html)) lead += '<base href="' + game.href + '">';
+                  html = /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, function(found) { return found + lead; }) : lead + html;
+                  document.open();
+                  document.write(html);
+                  document.close();
+                  document.title = "Tab";
+              }).catch(function(error) {
+                  var heading = document.querySelector("#msg h2");
+                  if (heading) heading.textContent = "Error loading game: " + error;
+              });
+          });
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
     <link rel="preconnect" href="https://rawcdn.githack.com" />
@@ -1186,87 +1265,14 @@
           }
       }
 
-      function guardTab() {
-          window.close = function() {};
-          var origOpen = window.open;
-          window.open = function(url, target) {
-              var t = (target || "_blank").toLowerCase();
-              if (t === "_self" || t === "_top" || t === "_parent") return null;
-              return origOpen.apply(this, arguments);
-          };
-          document.addEventListener("click", function(e) {
-              var a = e.target && e.target.closest ? e.target.closest("a") : null;
-              if (!a || !a.href) return;
-              var t = (a.target || "").toLowerCase();
-              if (t === "_blank") return;
-              e.preventDefault();
-              e.stopImmediatePropagation();
-          }, true);
-          document.addEventListener("submit", function(e) {
-              if (e.target.target && e.target.target.toLowerCase() === "_blank") return;
-              e.preventDefault();
-          }, true);
-          HTMLFormElement.prototype.submit = function() {};
-          if (HTMLFormElement.prototype.requestSubmit) HTMLFormElement.prototype.requestSubmit = function() {};
-          new MutationObserver(function(list) {
-              list.forEach(function(m) {
-                  m.addedNodes.forEach(function(n) {
-                      if (n.nodeType !== 1) return;
-                      if (n.matches && n.matches('meta[http-equiv="refresh" i]')) n.remove();
-                      if (n.querySelectorAll) n.querySelectorAll('meta[http-equiv="refresh" i]').forEach(function(el) { el.remove(); });
-                  });
-              });
-          }).observe(document.documentElement || document, { childList: true, subtree: true });
-          if (window.navigation) {
-              window.navigation.addEventListener("navigate", function(e) {
-                  if (!e.cancelable || e.hashChange || e.destination.sameDocument) return;
-                  if (e.downloadRequest !== null || e.navigationType === "reload") return;
-                  e.preventDefault();
-              });
-          }
-      }
-
-      async function openZone(file) {
+      function openZone(file) {
           if (file.url.startsWith("http")) {
               window.open(file.url, "_blank");
               return;
           }
 
           const url = file.url.replace("{COVER_URL}", coverURL).replace("{HTML_URL}", htmlURL);
-          const newWindow = window.open("about:blank", "_blank");
-
-          if (!newWindow) {
-              alert("Popup blocked! Your browser is preventing the new tab from opening. Please allow pop-ups for this file.");
-              return;
-          }
-
-          const TAB_TITLE = "Tab";
-          const doc = newWindow.document;
-
-          doc.open();
-          doc.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + TAB_TITLE + '</title>' +
-              '<style>html,body{margin:0;padding:0;height:100%;background:#000;overflow:hidden}' +
-              '#msg{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-family:Arial,sans-serif}</style>' +
-              '</head><body><div id="msg"><h2>Loading game...</h2></div></body></html>');
-          doc.close();
-
-          try {
-              const response = await fetch(url + "?t=" + Date.now());
-              if (!response.ok) throw new Error("HTTP " + response.status);
-              let html = await response.text();
-              let lead = "<script>(" + guardTab.toString() + ")();<\/script>";
-              lead += "<script>document.title='" + TAB_TITLE + "';<\/script>";
-              if (!/<base[\s>]/i.test(html)) lead += '<base href="' + url + '">';
-              html = /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, match => match + lead) : lead + html;
-              if (newWindow.closed) return;
-              var blob = new Blob([html], { type: "text/html" });
-              newWindow.location.href = URL.createObjectURL(blob);
-          } catch (error) {
-              console.error(error);
-              if (newWindow.closed) return;
-              const heading = doc.querySelector("#msg h2");
-              if (heading) heading.textContent = "Error loading game: " + error;
-          }
+          window.open(location.href.split("#")[0] + "#play=" + encodeURIComponent(url), "_blank", "noopener");
       }
 
       function loadScene() {
