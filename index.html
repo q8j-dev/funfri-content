@@ -796,6 +796,20 @@
         color: rgba(var(--scene-ink), 0.8);
         text-shadow: 0 0 8px rgb(var(--scene-rgb)), 0 0 2px rgb(var(--scene-rgb));
       }
+      #notice {
+        display: block;
+        margin-top: 10px;
+        font-size: 14px;
+        line-height: 18px;
+        color: #b0b0b0;
+      }
+      #notice a {
+        color: #ffffff;
+        text-decoration: underline;
+      }
+      html.scene-on #notice {
+        color: rgb(var(--scene-ink));
+      }
       #caleb-shoutout {
         display: block;
         margin-bottom: 6px;
@@ -913,7 +927,7 @@
       <button type="button" id="scene-button" aria-haspopup="dialog" aria-expanded="false" aria-controls="scene-panel">
         Background
       </button>
-      <button type="button" id="caleb-button" aria-pressed="false">Enable Caleb Virus</button>
+      <button type="button" id="caleb-button" aria-pressed="false">Enable Caleb Mode</button>
       <div id="commit"></div>
       <div id="scene-panel" role="dialog" aria-label="Background">
         <div class="scene-modes" role="radiogroup" aria-label="Background style">
@@ -2131,7 +2145,7 @@
 
           button.addEventListener("click", () => {
               active = !active;
-              button.textContent = active ? "Disable Caleb Virus" : "Enable Caleb Virus";
+              button.textContent = active ? "Disable Caleb Mode" : "Enable Caleb Mode";
               button.setAttribute("aria-pressed", String(active));
               clearTimeout(timer);
               if (active) {
@@ -2182,6 +2196,16 @@
           gnMathLink.setAttribute("rel", "noopener");
           gnMathLink.textContent = "gn-math";
           attributionEl.appendChild(gnMathLink);
+          const notice = document.createElementNS(htmlNS, "span");
+          notice.setAttribute("id", "notice");
+          notice.textContent = "the site is in early development, some games may not work/will break during gameplay. ";
+          const reportLink = document.createElementNS(htmlNS, "a");
+          reportLink.setAttribute("href", "https://forms.gle/y4TpXcsbGWWCTCPY6");
+          reportLink.setAttribute("target", "_blank");
+          reportLink.setAttribute("rel", "noopener");
+          reportLink.textContent = "report broken games";
+          notice.appendChild(reportLink);
+          attributionEl.appendChild(notice);
 
           calebVirus();
 
