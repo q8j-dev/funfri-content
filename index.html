@@ -28,9 +28,10 @@
               var a = e.target && e.target.closest ? e.target.closest("a[href]") : null;
               if (a && leaves(a)) e.preventDefault();
           }
-          function each(node, selector, run) {
-              if (node.matches(selector)) run(node);
-              node.querySelectorAll(selector).forEach(run);
+          var watched = 'meta[http-equiv="refresh" i]' + (strict ? ", iframe" : "");
+          function tend(node) {
+              if (node.localName === "iframe") watchFrame(node);
+              else node.remove();
           }
           var frameWindow = Object.getOwnPropertyDescriptor(HTMLIFrameElement.prototype, "contentWindow").get;
           function sealFrame(frame) {
@@ -73,8 +74,8 @@
               list.forEach(function(m) {
                   m.addedNodes.forEach(function(n) {
                       if (n.nodeType !== 1) return;
-                      each(n, 'meta[http-equiv="refresh" i]', function(el) { el.remove(); });
-                      if (strict) each(n, "iframe", watchFrame);
+                      if (n.matches(watched)) tend(n);
+                      if (n.firstElementChild) n.querySelectorAll(watched).forEach(tend);
                   });
               });
           }).observe(document, { childList: true, subtree: true });
@@ -825,7 +826,13 @@
         position: fixed;
         z-index: 9999;
         pointer-events: none;
+        transform: var(--to);
         transition: transform 0.9s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      @starting-style {
+        .caleb-peek {
+          transform: var(--from);
+        }
       }
       @font-face {
         font-family: "MS Sans Serif";
@@ -2011,11 +2018,15 @@
       }
 
       function calebVirus() {
-          const bytes = Uint8Array.from(atob(CALEB_B64), c => c.charCodeAt(0));
+          const binary = atob(CALEB_B64);
+          const bytes = new Uint8Array(binary.length);
+          for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
           const face = URL.createObjectURL(new Blob([bytes], { type: "image/webp" }));
           const between = (low, high) => low + Math.random() * (high - low);
           const pick = list => list[Math.floor(Math.random() * list.length)];
           const turns = { bottom: 0, left: 90, top: 180, right: -90 };
+          const sides = Object.keys(turns);
+          const stepped = typeof CSSStartingStyleRule === "undefined";
           const notices = [
               "1 new caleb detected",
               "caleb.exe has stopped working",
@@ -2052,13 +2063,16 @@
               img.style[side] = "0";
               img.style[flat ? "left" : "top"] = at + "%";
               img.style.transitionDuration = between(0.2, 0.9) + "s";
-              img.style.transform = hidden;
+              img.style.setProperty("--from", hidden);
+              img.style.setProperty("--to", stepped ? hidden : shown);
               document.body.appendChild(img);
-              img.getBoundingClientRect();
-              img.style.transform = shown;
+              if (stepped) {
+                  img.getBoundingClientRect();
+                  img.style.setProperty("--to", shown);
+              }
               peeking++;
               setTimeout(() => {
-                  img.style.transform = hidden;
+                  img.style.setProperty("--to", hidden);
                   setTimeout(() => {
                       img.remove();
                       peeking--;
@@ -2068,7 +2082,7 @@
 
           function randomPeek() {
               if (!active || peeking >= 45) return;
-              peek(pick(Object.keys(turns)), between(4, 96), between(1, 2.4), between(0.4, 0.92), between(-22, 22), between(400, 3600));
+              peek(pick(sides), between(4, 96), between(1, 2.4), between(0.4, 0.92), between(-22, 22), between(400, 3600));
           }
 
           function notice() {
@@ -2133,14 +2147,19 @@
           }
 
           function tick() {
-              if (!document.hidden && active) {
+              if (active) {
                   const count = Math.round(Math.random() < 0.2 ? between(12, 24) : between(2, 5));
                   for (let i = 0; i < count; i++) setTimeout(randomPeek, i * between(30, 120));
                   if (Math.random() < 0.3) notice();
-              } else if (!document.hidden) {
+              } else {
                   peek(pick(["left", "right", "bottom"]), between(15, 85), between(1, 1.25), between(0.5, 0.8), between(-6, 6), between(2500, 5000));
               }
               timer = setTimeout(tick, active ? between(200, 1000) : between(5000, 11000));
+          }
+
+          function resume() {
+              clearTimeout(timer);
+              if (!document.hidden) timer = setTimeout(tick, active ? 200 : 1500);
           }
 
           button.addEventListener("click", () => {
@@ -2158,7 +2177,8 @@
           });
 
           const ready = () => {
-              timer = setTimeout(tick, 1500);
+              document.addEventListener("visibilitychange", resume);
+              resume();
           };
           const first = new Image();
           first.src = face;
@@ -2174,7 +2194,6 @@
 
       async function start() {
           guardTab();
-          showCommit();
           watchScene();
           const zonesReady = loadZones();
           zonesReady.catch(() => {});
@@ -2209,8 +2228,6 @@
           notice.appendChild(document.createTextNode("funfri is not a proxy and it never will be."));
           attributionEl.appendChild(notice);
 
-          calebVirus();
-
           container.innerHTML = "";
           const status = document.createElementNS(htmlNS, "div");
           status.setAttribute("id", "status-text");
@@ -2218,6 +2235,8 @@
           container.appendChild(status);
 
           listZones(zonesReady);
+          calebVirus();
+          showCommit();
       }
 
       start();
