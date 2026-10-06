@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>site</title>
+    <title>Tab</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
     <link rel="preconnect" href="https://rawcdn.githack.com" />
@@ -269,6 +269,399 @@
         line-height: 22px;
         color: #ffffff;
       }
+      #scene-canvas {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        display: block;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+      #scene-button {
+        position: absolute;
+        top: 14px;
+        right: 16px;
+        z-index: 11;
+        display: flex;
+        align-items: center;
+        height: 36px;
+        padding: 0 13px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        background-color: rgba(255, 255, 255, 0.04);
+        color: #7a7a7a;
+        font-family: "Space Grotesk", Arial, sans-serif;
+        font-weight: 500;
+        font-size: 13px;
+        line-height: 16px;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        outline: none;
+        user-select: none;
+        transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s, color 0.2s;
+      }
+      #scene-button:hover {
+        border-color: rgba(255, 255, 255, 0.22);
+        color: #ffffff;
+      }
+      #scene-button:focus-visible,
+      #scene-button[aria-expanded="true"] {
+        border-color: rgba(255, 255, 255, 0.6);
+        background-color: rgba(255, 255, 255, 0.07);
+        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.07);
+        color: #ffffff;
+      }
+      #scene-panel {
+        position: absolute;
+        top: 60px;
+        right: 16px;
+        z-index: 10;
+        box-sizing: border-box;
+        width: 366px;
+        max-width: calc(100% - 32px);
+        padding: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 14px;
+        background-color: #0a0a0a;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        color: #ffffff;
+        font-family: "Space Grotesk", Arial, sans-serif;
+        font-weight: 500;
+        font-size: 13px;
+        line-height: 16px;
+        letter-spacing: 0.01em;
+        text-align: left;
+        user-select: none;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-6px);
+        transition: opacity 0.15s ease, transform 0.15s ease, visibility 0s 0.15s;
+      }
+      #scene-panel.open {
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        transition: opacity 0.15s ease, transform 0.15s ease;
+      }
+      .scene-modes {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .scene-mode {
+        position: relative;
+        isolation: isolate;
+        box-sizing: border-box;
+        display: block;
+        aspect-ratio: 1 / 1;
+        padding: 0;
+        border: 2px solid #333333;
+        border-radius: 18px;
+        background-color: #111111;
+        font: inherit;
+        overflow: hidden;
+        cursor: pointer;
+        outline: none;
+        transition: transform 0.25s ease, border-color 0.25s ease;
+      }
+      .scene-mode:hover,
+      .scene-mode:focus-visible {
+        transform: scale(1.05);
+        border-color: rgba(255, 255, 255, 0.85);
+      }
+      .scene-mode[aria-checked="true"] {
+        border-color: #ffffff;
+      }
+      .scene-preview {
+        position: absolute;
+        inset: 0;
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      .scene-mode::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 62%;
+        background: linear-gradient(to top,
+          rgba(0, 0, 0, 0.66) 0%,
+          rgba(0, 0, 0, 0.52) 22%,
+          rgba(0, 0, 0, 0.32) 45%,
+          rgba(0, 0, 0, 0.14) 68%,
+          rgba(0, 0, 0, 0.04) 86%,
+          rgba(0, 0, 0, 0) 100%);
+        pointer-events: none;
+      }
+      .scene-name {
+        position: absolute;
+        z-index: 1;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        padding: 0 12px 11px 12px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 14px;
+        line-height: 17px;
+        letter-spacing: -0.005em;
+        color: #ffffff;
+        text-shadow: 0 1px 10px rgba(0, 0, 0, 0.55);
+      }
+      .scene-options {
+        margin-top: 14px;
+      }
+      .scene-options[hidden] {
+        display: none;
+      }
+      .scene-presets {
+        display: flex;
+        gap: 8px;
+      }
+      .scene-preset {
+        box-sizing: border-box;
+        flex: 0 0 auto;
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        border: 2px solid #333333;
+        border-radius: 9px;
+        background: linear-gradient(135deg, var(--preset-a) 49%, var(--preset-b) 51%);
+        background-clip: padding-box;
+        cursor: pointer;
+        outline: none;
+        transition: transform 0.25s ease, border-color 0.25s ease;
+      }
+      .scene-preset:hover,
+      .scene-preset:focus-visible {
+        transform: scale(1.1);
+        border-color: rgba(255, 255, 255, 0.85);
+      }
+      .scene-preset[aria-pressed="true"] {
+        border-color: #ffffff;
+      }
+      .scene-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        height: 36px;
+        color: #7a7a7a;
+      }
+      label.scene-row {
+        cursor: pointer;
+      }
+      .scene-text {
+        flex: 1 1 auto;
+      }
+      .scene-value {
+        flex: 0 0 auto;
+        min-width: 40px;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 0.03em;
+        text-align: right;
+        color: #ffffff;
+      }
+      .scene-color {
+        -webkit-appearance: none;
+        appearance: none;
+        box-sizing: border-box;
+        flex: 0 0 auto;
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        border: 2px solid #333333;
+        border-radius: 9px;
+        background: none;
+        overflow: hidden;
+        cursor: pointer;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+      }
+      .scene-color:hover,
+      .scene-color:focus-visible {
+        border-color: rgba(255, 255, 255, 0.6);
+      }
+      .scene-color:focus-visible {
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.14);
+      }
+      .scene-color::-webkit-color-swatch-wrapper {
+        padding: 0;
+      }
+      .scene-color::-webkit-color-swatch {
+        border: 0;
+        border-radius: 0;
+      }
+      .scene-color::-moz-color-swatch {
+        border: 0;
+        border-radius: 0;
+      }
+      .scene-range {
+        -webkit-appearance: none;
+        appearance: none;
+        flex: 0 0 150px;
+        min-width: 0;
+        height: 16px;
+        margin: 0;
+        background: none;
+        cursor: pointer;
+        outline: none;
+      }
+      .scene-range::-webkit-slider-runnable-track {
+        height: 4px;
+        border-radius: 2px;
+        background-color: rgba(255, 255, 255, 0.18);
+      }
+      .scene-range::-moz-range-track {
+        height: 4px;
+        border-radius: 2px;
+        background-color: rgba(255, 255, 255, 0.18);
+      }
+      .scene-range::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 14px;
+        height: 14px;
+        margin-top: -5px;
+        border: 0;
+        border-radius: 50%;
+        background-color: #ffffff;
+      }
+      .scene-range::-moz-range-thumb {
+        width: 14px;
+        height: 14px;
+        border: 0;
+        border-radius: 50%;
+        background-color: #ffffff;
+      }
+      .scene-range:focus-visible::-webkit-slider-thumb {
+        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.16);
+      }
+      .scene-range:focus-visible::-moz-range-thumb {
+        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.16);
+      }
+      html.scene-on {
+        background-color: rgb(var(--scene-rgb));
+      }
+      html.scene-on body {
+        background-color: transparent;
+      }
+      html.scene-on #top::before {
+        content: "";
+        position: absolute;
+        inset: 0 0 -34px 0;
+        background: radial-gradient(ellipse 58% 72% at 50% 46%,
+          rgba(var(--scene-rgb), 0.86) 0%,
+          rgba(var(--scene-rgb), 0.62) 46%,
+          rgba(var(--scene-rgb), 0) 100%);
+        pointer-events: none;
+      }
+      html.scene-on #logo {
+        background: linear-gradient(180deg, rgb(var(--scene-ink)) 30%, rgba(var(--scene-ink), 0.56) 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        filter: drop-shadow(0 0 12px rgba(var(--scene-rgb), 0.9));
+      }
+      html.scene-on #attribution {
+        color: rgba(var(--scene-ink), 0.8);
+        text-shadow: 0 0 8px rgb(var(--scene-rgb)), 0 0 2px rgb(var(--scene-rgb));
+      }
+      html.scene-on #attribution a,
+      html.scene-on #attribution a:hover {
+        color: rgb(var(--scene-ink));
+      }
+      html.scene-on #search-icon {
+        stroke: rgba(var(--scene-ink), 0.62);
+      }
+      html.scene-on #search-wrap:focus-within #search-icon {
+        stroke: rgb(var(--scene-ink));
+      }
+      html.scene-on #search-bar {
+        border-color: rgba(var(--scene-ink), 0.24);
+        background-color: rgba(var(--scene-rgb), 0.8);
+        color: rgb(var(--scene-ink));
+        caret-color: rgb(var(--scene-ink));
+      }
+      html.scene-on #search-bar::placeholder {
+        color: rgba(var(--scene-ink), 0.64);
+      }
+      html.scene-on #search-bar:hover {
+        border-color: rgba(var(--scene-ink), 0.4);
+      }
+      html.scene-on #search-bar:focus {
+        border-color: rgba(var(--scene-ink), 0.75);
+        background-color: rgba(var(--scene-rgb), 0.92);
+        box-shadow: 0 0 0 4px rgba(var(--scene-ink), 0.12), 0 10px 30px rgba(0, 0, 0, 0.5);
+      }
+      html.scene-on #search-hint {
+        border-color: rgba(var(--scene-ink), 0.3);
+        color: rgba(var(--scene-ink), 0.72);
+      }
+      html.scene-on #status-text {
+        color: rgb(var(--scene-ink));
+        text-shadow: 0 0 8px rgb(var(--scene-rgb)), 0 0 2px rgb(var(--scene-rgb));
+      }
+      html.scene-on #scene-button {
+        border-color: rgba(var(--scene-ink), 0.24);
+        background-color: rgba(var(--scene-rgb), 0.8);
+        color: rgba(var(--scene-ink), 0.72);
+      }
+      html.scene-on #scene-button:hover,
+      html.scene-on #scene-button[aria-expanded="true"],
+      html.scene-on #scene-button:focus-visible {
+        border-color: rgba(var(--scene-ink), 0.6);
+        color: rgb(var(--scene-ink));
+      }
+      html.scene-on #scene-button[aria-expanded="true"],
+      html.scene-on #scene-button:focus-visible {
+        box-shadow: 0 0 0 4px rgba(var(--scene-ink), 0.1);
+      }
+      html.scene-on #scene-panel {
+        border-color: rgba(var(--scene-ink), 0.24);
+        background-color: rgb(var(--scene-rgb));
+        background-image: linear-gradient(rgba(var(--scene-ink), 0.05), rgba(var(--scene-ink), 0.05));
+        color: rgb(var(--scene-ink));
+      }
+      html.scene-on .scene-mode,
+      html.scene-on .scene-preset,
+      html.scene-on .scene-color {
+        border-color: rgba(var(--scene-ink), 0.22);
+      }
+      html.scene-on .scene-mode:hover,
+      html.scene-on .scene-mode:focus-visible,
+      html.scene-on .scene-preset:hover,
+      html.scene-on .scene-preset:focus-visible,
+      html.scene-on .scene-color:hover,
+      html.scene-on .scene-color:focus-visible {
+        border-color: rgba(var(--scene-ink), 0.85);
+      }
+      html.scene-on .scene-mode[aria-checked="true"],
+      html.scene-on .scene-preset[aria-pressed="true"] {
+        border-color: rgb(var(--scene-ink));
+      }
+      html.scene-on .scene-row {
+        color: rgba(var(--scene-ink), 0.62);
+      }
+      html.scene-on .scene-value {
+        color: rgb(var(--scene-ink));
+      }
+      html.scene-on .scene-range::-webkit-slider-runnable-track {
+        background-color: rgba(var(--scene-ink), 0.2);
+      }
+      html.scene-on .scene-range::-moz-range-track {
+        background-color: rgba(var(--scene-ink), 0.2);
+      }
+      html.scene-on .scene-range::-webkit-slider-thumb {
+        background-color: rgb(var(--scene-ink));
+      }
+      html.scene-on .scene-range::-moz-range-thumb {
+        background-color: rgb(var(--scene-ink));
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #scene-panel,
+        #scene-panel.open { transition: none; }
+      }
     </style>
   </head>
   <body>
@@ -280,6 +673,38 @@
           <svg id="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
           <input type="text" id="search-bar" placeholder="Search games..." spellcheck="false" autocomplete="off" />
           <span id="search-hint" aria-hidden="true">/</span>
+        </div>
+      </div>
+      <button type="button" id="scene-button" aria-haspopup="dialog" aria-expanded="false" aria-controls="scene-panel">
+        Background
+      </button>
+      <div id="scene-panel" role="dialog" aria-label="Background">
+        <div class="scene-modes" role="radiogroup" aria-label="Background style">
+          <button type="button" class="scene-mode" role="radio" aria-checked="true" data-mode="black">
+            <canvas class="scene-preview" data-preview="black" width="110" height="110"></canvas>
+            <span class="scene-name">Black</span>
+          </button>
+          <button type="button" class="scene-mode" role="radio" aria-checked="false" data-mode="waves">
+            <canvas class="scene-preview" data-preview="waves" width="160" height="160"></canvas>
+            <span class="scene-name">Waves</span>
+          </button>
+          <button type="button" class="scene-mode" role="radio" aria-checked="false" data-mode="matrix">
+            <canvas class="scene-preview" data-preview="matrix" width="220" height="220"></canvas>
+            <span class="scene-name">Matrix</span>
+          </button>
+        </div>
+        <div class="scene-options" data-for="waves" hidden="hidden">
+          <div class="scene-row"><span class="scene-text">Presets</span><span class="scene-presets" data-presets="waves"></span></div>
+          <label class="scene-row"><span class="scene-text">Background</span><span class="scene-value" data-value="waves.background"></span><input type="color" class="scene-color" data-setting="waves.background" /></label>
+          <label class="scene-row"><span class="scene-text">Waves</span><span class="scene-value" data-value="waves.color"></span><input type="color" class="scene-color" data-setting="waves.color" /></label>
+          <label class="scene-row"><span class="scene-text">Speed</span><input type="range" class="scene-range" min="0.25" max="3" step="0.05" data-setting="waves.speed" /><span class="scene-value" data-value="waves.speed"></span></label>
+        </div>
+        <div class="scene-options" data-for="matrix" hidden="hidden">
+          <div class="scene-row"><span class="scene-text">Presets</span><span class="scene-presets" data-presets="matrix"></span></div>
+          <label class="scene-row"><span class="scene-text">Background</span><span class="scene-value" data-value="matrix.background"></span><input type="color" class="scene-color" data-setting="matrix.background" /></label>
+          <label class="scene-row"><span class="scene-text">Characters</span><span class="scene-value" data-value="matrix.color"></span><input type="color" class="scene-color" data-setting="matrix.color" /></label>
+          <label class="scene-row"><span class="scene-text">Speed</span><input type="range" class="scene-range" min="0.25" max="3" step="0.05" data-setting="matrix.speed" /><span class="scene-value" data-value="matrix.speed"></span></label>
+          <label class="scene-row"><span class="scene-text">Size</span><input type="range" class="scene-range" min="10" max="32" step="1" data-setting="matrix.size" /><span class="scene-value" data-value="matrix.size"></span></label>
         </div>
       </div>
     </header>
@@ -319,9 +744,40 @@
       const entryByCard = new WeakMap();
       const rowByElement = new WeakMap();
 
+      const sceneButton = document.getElementById('scene-button');
+      const scenePanel = document.getElementById('scene-panel');
+      const sceneRoot = document.documentElement;
+      const sceneKey = "funfri-background";
+      const sceneDefaults = {
+          mode: "black",
+          waves: { background: "#000000", color: "#ffffff", speed: 1 },
+          matrix: { background: "#000000", color: "#00ff66", speed: 1, size: 16 }
+      };
+      const scenePresets = {
+          waves: [["#000000", "#ffffff"], ["#04122e", "#5aa9ff"], ["#160a2e", "#b78cff"], ["#2a0a12", "#ff7a59"], ["#02231c", "#4dffc3"], ["#f2f2f2", "#111111"]],
+          matrix: [["#000000", "#00ff66"], ["#000000", "#ffb000"], ["#00131c", "#35d6ff"], ["#12002b", "#ff4fd8"], ["#000000", "#ffffff"], ["#f1fff5", "#0b7a36"]]
+      };
+      const sceneWaves = [
+          [0.2, 0.20, 0.2, 0.5, 0.1, 15, false],
+          [0.4, 0.40, 0.15, 0.5, 0.1, 17, false],
+          [0.3, 0.60, 0.15, 0.5, 0.05, 23, false],
+          [0.1, 0.26, 0.07, 0.3, 0.1, 17, true],
+          [0.3, 0.36, 0.07, 0.3, 0.1, 17, true],
+          [0.5, 0.46, 0.07, 0.3, 0.05, 23, true],
+          [0.2, 0.58, 0.05, 0.3, 0.2, 15, true]
+      ];
+      const sceneGlyphs = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ" + Array.from({ length: 86 }, (unused, index) => String.fromCharCode(0x30a1 + index)).join("");
+      const sceneStill = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : { matches: false };
+      let sceneSettings = loadScene();
+      let sceneRenderer = null;
+      let scenePainted = "";
+
       document.addEventListener("keydown", (e) => {
           const typing = /^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || "");
-          if (e.key === "/" && !typing && !e.ctrlKey && !e.metaKey && !e.altKey) {
+          if (e.key === "Escape" && scenePanel.classList.contains("open")) {
+              toggleScenePanel(false);
+              sceneButton.focus();
+          } else if (e.key === "/" && !typing && !e.ctrlKey && !e.metaKey && !e.altKey) {
               e.preventDefault();
               searchBar.focus();
           } else if (e.key === "Escape" && document.activeElement === searchBar) {
@@ -730,44 +1186,557 @@
           }
       }
 
-      function openZone(file) {
+      async function openZone(file) {
           if (file.url.startsWith("http")) {
               window.open(file.url, "_blank");
-          } else {
-              const url = file.url.replace("{COVER_URL}", coverURL).replace("{HTML_URL}", htmlURL);
+              return;
+          }
 
-              const newWindow = window.open("about:blank", "_blank");
+          const url = file.url.replace("{COVER_URL}", coverURL).replace("{HTML_URL}", htmlURL);
+          const newWindow = window.open("about:blank", "_blank");
 
-              if (!newWindow) {
-                  alert("Popup blocked! Your browser is preventing the new tab from opening. Please allow pop-ups for this file.");
-                  return;
+          if (!newWindow) {
+              alert("Popup blocked! Your browser is preventing the new tab from opening. Please allow pop-ups for this file.");
+              return;
+          }
+
+          const TAB_TITLE = "Tab";
+          const doc = newWindow.document;
+
+          doc.open();
+          doc.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + TAB_TITLE + '</title>' +
+              '<style>html,body{margin:0;padding:0;height:100%;background:#000;overflow:hidden}' +
+              '#msg{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-family:Arial,sans-serif}</style>' +
+              '</head><body><div id="msg"><h2>Loading game...</h2></div></body></html>');
+          doc.close();
+
+          try {
+              const response = await fetch(url + "?t=" + Date.now());
+              if (!response.ok) throw new Error("HTTP " + response.status);
+              let html = await response.text();
+              if (!/<base[\s>]/i.test(html)) {
+                  const base = '<base href="' + url + '">';
+                  html = /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, match => match + base) : base + html;
               }
-
-              const TAB_TITLE = "image.svg";
-              const doc = newWindow.document;
+              if (newWindow.closed) return;
 
               doc.open();
-              doc.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + TAB_TITLE + '</title>' +
-                  '<style>html,body{margin:0;padding:0;height:100%;background:#000;overflow:hidden}' +
-                  '#msg{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-family:Arial,sans-serif}' +
-                  '#frame{position:fixed;inset:0;width:100%;height:100%;border:0;background:#000}</style>' +
-                  '</head><body><div id="msg"><h2>Loading game...</h2></div></body></html>');
+              doc.write(html);
               doc.close();
-
-              const frame = doc.createElement("iframe");
-              frame.id = "frame";
-              frame.setAttribute("allow", "fullscreen; autoplay; gamepad; clipboard-write");
-              frame.onload = () => {
-                  const msg = doc.getElementById("msg");
-                  if (msg) msg.remove();
-                  doc.title = TAB_TITLE;
-              };
-              frame.src = url + "?t=" + Date.now();
-              doc.body.appendChild(frame);
+              doc.title = TAB_TITLE;
+          } catch (error) {
+              console.error(error);
+              if (newWindow.closed) return;
+              const heading = doc.querySelector("#msg h2");
+              if (heading) heading.textContent = "Error loading game: " + error;
           }
       }
 
+      function loadScene() {
+          const settings = JSON.parse(JSON.stringify(sceneDefaults));
+          try {
+              const saved = JSON.parse(localStorage.getItem(sceneKey) || "{}");
+              if (saved.mode === "waves" || saved.mode === "matrix") settings.mode = saved.mode;
+              ["waves", "matrix"].forEach(mode => {
+                  Object.keys(settings[mode]).forEach(name => {
+                      const value = saved[mode] ? saved[mode][name] : null;
+                      if (typeof settings[mode][name] === "number") {
+                          if (typeof value === "number" && isFinite(value)) settings[mode][name] = value;
+                      } else if (/^#[0-9a-f]{6}$/i.test(String(value))) {
+                          settings[mode][name] = value;
+                      }
+                  });
+              });
+          } catch (e) {}
+          return settings;
+      }
+
+      function saveScene() {
+          try {
+              localStorage.setItem(sceneKey, JSON.stringify(sceneSettings));
+          } catch (e) {}
+      }
+
+      function sceneRgb(hex) {
+          const value = parseInt(hex.slice(1), 16);
+          return [value >> 16 & 255, value >> 8 & 255, value & 255];
+      }
+
+      function sceneInk(rgb) {
+          const linear = rgb.map(channel => {
+              const level = channel / 255;
+              return level <= 0.03928 ? level / 12.92 : Math.pow((level + 0.055) / 1.055, 2.4);
+          });
+          const luminance = 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+          return (luminance + 0.05) / 0.05 > 1.05 / (luminance + 0.05) ? [12, 12, 12] : [255, 255, 255];
+      }
+
+      function themeScene() {
+          const active = sceneSettings.mode !== "black";
+          sceneRoot.classList.toggle("scene-on", active);
+          if (!active) {
+              sceneRoot.style.removeProperty("--scene-rgb");
+              sceneRoot.style.removeProperty("--scene-ink");
+              return;
+          }
+          const rgb = sceneRgb(sceneSettings[sceneSettings.mode].background);
+          sceneRoot.style.setProperty("--scene-rgb", rgb.join(", "));
+          sceneRoot.style.setProperty("--scene-ink", sceneInk(rgb).join(", "));
+      }
+
+      function startWaves(canvas) {
+          const gl = canvas.getContext("webgl", { alpha: false, antialias: false }) || canvas.getContext("experimental-webgl");
+          if (!gl) return null;
+
+          const vertexSource = `
+              attribute vec2 aVertexPosition;
+              void main() {
+                  gl_Position = vec4(aVertexPosition, 0.0, 1.0);
+              }
+          `;
+          const fragmentSource = `
+              #ifdef GL_FRAGMENT_PRECISION_HIGH
+              precision highp float;
+              #else
+              precision mediump float;
+              #endif
+
+              uniform float uTime;
+              uniform vec2 uResolution;
+              uniform vec3 uBackground;
+              uniform vec3 uWave;
+
+              const float waveWidthFactor = 1.5;
+
+              vec3 calcSine(
+                  vec2 uv,
+                  float speed,
+                  float frequency,
+                  float amplitude,
+                  float phaseShift,
+                  float verticalOffset,
+                  vec3 baseColor,
+                  float lineWidth,
+                  float sharpness,
+                  bool invertFalloff
+              ) {
+                  float angle = uTime * speed * frequency * -1.0 + (phaseShift + uv.x) * 2.0;
+                  float waveY = sin(angle) * amplitude + verticalOffset;
+                  float deltaY = waveY - uv.y;
+                  float distanceVal = distance(waveY, uv.y);
+
+                  if (invertFalloff) {
+                      if (deltaY > 0.0) {
+                          distanceVal = distanceVal * 4.0;
+                      }
+                  } else {
+                      if (deltaY < 0.0) {
+                          distanceVal = distanceVal * 4.0;
+                      }
+                  }
+
+                  float smoothVal = smoothstep(lineWidth * waveWidthFactor, 0.0, distanceVal);
+                  float scaleVal = pow(smoothVal, sharpness);
+
+                  return min(baseColor * scaleVal, baseColor);
+              }
+
+              void main() {
+                  vec2 uv = gl_FragCoord.xy / uResolution;
+
+                  vec3 accumulatedColor = vec3(0.0);
+                  accumulatedColor += calcSine(uv, 0.2, 0.20, 0.2, 0.0, 0.5, vec3(0.3), 0.1, 15.0, false);
+                  accumulatedColor += calcSine(uv, 0.4, 0.40, 0.15, 0.0, 0.5, vec3(0.3), 0.1, 17.0, false);
+                  accumulatedColor += calcSine(uv, 0.3, 0.60, 0.15, 0.0, 0.5, vec3(0.3), 0.05, 23.0, false);
+                  accumulatedColor += calcSine(uv, 0.1, 0.26, 0.07, 0.0, 0.3, vec3(0.3), 0.1, 17.0, true);
+                  accumulatedColor += calcSine(uv, 0.3, 0.36, 0.07, 0.0, 0.3, vec3(0.3), 0.1, 17.0, true);
+                  accumulatedColor += calcSine(uv, 0.5, 0.46, 0.07, 0.0, 0.3, vec3(0.3), 0.05, 23.0, true);
+                  accumulatedColor += calcSine(uv, 0.2, 0.58, 0.05, 0.0, 0.3, vec3(0.3), 0.2, 15.0, true);
+
+                  float maxChannel = max(accumulatedColor.r, max(accumulatedColor.g, accumulatedColor.b));
+
+                  gl_FragColor = vec4(mix(uBackground, uWave, clamp(maxChannel, 0.0, 1.0)), 1.0);
+              }
+          `;
+
+          const uniforms = {};
+          let background = [0, 0, 0];
+          let wave = [1, 1, 1];
+          let ready = false;
+          let frame = 0;
+          let last = 0;
+          let time = 0;
+
+          const compile = (source, type) => {
+              const shader = gl.createShader(type);
+              gl.shaderSource(shader, source);
+              gl.compileShader(shader);
+              return gl.getShaderParameter(shader, gl.COMPILE_STATUS) ? shader : null;
+          };
+
+          const build = () => {
+              const vertex = compile(vertexSource, gl.VERTEX_SHADER);
+              const fragment = compile(fragmentSource, gl.FRAGMENT_SHADER);
+              if (!vertex || !fragment) return false;
+
+              const program = gl.createProgram();
+              gl.attachShader(program, vertex);
+              gl.attachShader(program, fragment);
+              gl.linkProgram(program);
+              if (!gl.getProgramParameter(program, gl.LINK_STATUS)) return false;
+              gl.useProgram(program);
+
+              ["uTime", "uResolution", "uBackground", "uWave"].forEach(name => {
+                  uniforms[name] = gl.getUniformLocation(program, name);
+              });
+
+              const position = gl.getAttribLocation(program, "aVertexPosition");
+              gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+              gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0]), gl.STATIC_DRAW);
+              gl.enableVertexAttribArray(position);
+              gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+              return true;
+          };
+
+          const draw = () => {
+              if (!ready) return;
+              gl.uniform1f(uniforms.uTime, time);
+              gl.uniform2f(uniforms.uResolution, canvas.width, canvas.height);
+              gl.uniform3f(uniforms.uBackground, background[0], background[1], background[2]);
+              gl.uniform3f(uniforms.uWave, wave[0], wave[1], wave[2]);
+              gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+          };
+
+          const render = (now) => {
+              const speed = Math.min(3, Math.max(0.25, sceneSettings.waves.speed));
+              if (last) time += Math.min(now - last, 100) * 0.001 * speed;
+              last = now;
+              draw();
+              frame = requestAnimationFrame(render);
+          };
+
+          const refresh = () => {
+              background = sceneRgb(sceneSettings.waves.background).map(channel => channel / 255);
+              wave = sceneRgb(sceneSettings.waves.color).map(channel => channel / 255);
+              if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
+                  canvas.width = window.innerWidth;
+                  canvas.height = window.innerHeight;
+                  gl.viewport(0, 0, canvas.width, canvas.height);
+              }
+              if (sceneStill.matches) draw();
+          };
+
+          const lost = (e) => {
+              e.preventDefault();
+              ready = false;
+          };
+          const restored = () => {
+              ready = build();
+              refresh();
+          };
+
+          ready = build();
+          if (!ready) return null;
+          canvas.addEventListener("webglcontextlost", lost);
+          canvas.addEventListener("webglcontextrestored", restored);
+          refresh();
+          if (sceneStill.matches) {
+              time = 6;
+              draw();
+          } else {
+              frame = requestAnimationFrame(render);
+          }
+
+          return {
+              refresh: refresh,
+              stop: () => {
+                  cancelAnimationFrame(frame);
+                  canvas.removeEventListener("webglcontextlost", lost);
+                  canvas.removeEventListener("webglcontextrestored", restored);
+                  const release = gl.getExtension("WEBGL_lose_context");
+                  if (release) release.loseContext();
+              }
+          };
+      }
+
+      function startMatrix(canvas) {
+          const context = canvas.getContext("2d", { alpha: false });
+          if (!context) return null;
+
+          let drops = [];
+          let background = [0, 0, 0];
+          let color = "";
+          let lead = "";
+          let size = 16;
+          let width = 0;
+          let height = 0;
+          let frame = 0;
+          let last = 0;
+          let pending = 0;
+
+          const step = () => {
+              context.fillStyle = "rgba(" + background.join(", ") + ", 0.1)";
+              context.fillRect(0, 0, width, height);
+              drops.forEach((drop, index) => {
+                  const x = index * size;
+                  const y = drop.row * size;
+                  if (drop.glyph) {
+                      context.fillStyle = "rgb(" + background.join(", ") + ")";
+                      context.fillRect(x, y - size, size, size);
+                      context.fillStyle = color;
+                      context.fillText(drop.glyph, x + size / 2, y - size);
+                  }
+                  drop.glyph = sceneGlyphs.charAt(Math.floor(Math.random() * sceneGlyphs.length));
+                  context.fillStyle = lead;
+                  context.fillText(drop.glyph, x + size / 2, y);
+                  drop.row++;
+                  if (y > height && Math.random() > 0.975) {
+                      drop.row = 0;
+                      drop.glyph = "";
+                  }
+              });
+          };
+
+          const refresh = (reset) => {
+              const settings = sceneSettings.matrix;
+              const ink = sceneInk(sceneRgb(settings.background));
+              const next = Math.min(32, Math.max(10, Math.round(settings.size)));
+              background = sceneRgb(settings.background);
+              color = settings.color;
+              lead = "rgb(" + sceneRgb(settings.color).map((channel, index) => Math.round(channel + (ink[index] - channel) * 0.7)).join(", ") + ")";
+              if (!reset && !sceneStill.matches && next === size && width === window.innerWidth && height === window.innerHeight) return;
+
+              const ratio = Math.min(window.devicePixelRatio || 1, 2);
+              size = next;
+              width = window.innerWidth;
+              height = window.innerHeight;
+              canvas.width = Math.round(width * ratio);
+              canvas.height = Math.round(height * ratio);
+              context.setTransform(ratio, 0, 0, ratio, 0, 0);
+              context.font = "600 " + size + "px monospace";
+              context.textBaseline = "top";
+              context.textAlign = "center";
+              context.fillStyle = settings.background;
+              context.fillRect(0, 0, width, height);
+
+              drops = [];
+              const rowCount = Math.ceil(height / size);
+              for (let index = 0; index < Math.ceil(width / size); index++) {
+                  drops.push({ row: -Math.floor(Math.random() * rowCount), glyph: "" });
+              }
+              if (sceneStill.matches) {
+                  for (let index = 0; index < rowCount * 2; index++) step();
+              }
+          };
+
+          const render = (now) => {
+              const interval = 55 / Math.min(3, Math.max(0.25, sceneSettings.matrix.speed));
+              if (last) pending += Math.min(now - last, 250);
+              last = now;
+              for (let steps = 0; pending >= interval && steps < 4; steps++) {
+                  step();
+                  pending -= interval;
+              }
+              frame = requestAnimationFrame(render);
+          };
+
+          refresh(true);
+          if (!sceneStill.matches) frame = requestAnimationFrame(render);
+
+          return {
+              refresh: refresh,
+              stop: () => cancelAnimationFrame(frame)
+          };
+      }
+
+      function startScene() {
+          if (sceneRenderer) {
+              sceneRenderer.stop();
+              sceneRenderer.canvas.remove();
+              sceneRenderer = null;
+          }
+          themeScene();
+          if (sceneSettings.mode === "black") return;
+
+          const canvas = document.createElementNS(htmlNS, "canvas");
+          canvas.setAttribute("id", "scene-canvas");
+          canvas.setAttribute("aria-hidden", "true");
+          container.parentNode.insertBefore(canvas, container.parentNode.firstChild);
+          sceneRenderer = sceneSettings.mode === "waves" ? startWaves(canvas) : startMatrix(canvas);
+          if (sceneRenderer) {
+              sceneRenderer.canvas = canvas;
+          } else {
+              canvas.remove();
+          }
+      }
+
+      function syncScenePanel() {
+          scenePanel.querySelectorAll("[data-mode]").forEach(button => {
+              button.setAttribute("aria-checked", String(button.dataset.mode === sceneSettings.mode));
+          });
+          scenePanel.querySelectorAll("[data-for]").forEach(group => {
+              group.hidden = group.dataset.for !== sceneSettings.mode;
+          });
+          scenePanel.querySelectorAll("[data-setting]").forEach(input => {
+              const path = input.dataset.setting.split(".");
+              input.value = sceneSettings[path[0]][path[1]];
+          });
+          scenePanel.querySelectorAll("[data-value]").forEach(label => {
+              const path = label.dataset.value.split(".");
+              const value = sceneSettings[path[0]][path[1]];
+              if (path[1] === "speed") {
+                  label.textContent = value.toFixed(2) + "x";
+              } else if (path[1] === "size") {
+                  label.textContent = value + "px";
+              } else {
+                  label.textContent = value.toUpperCase();
+              }
+          });
+          scenePanel.querySelectorAll("[data-preset]").forEach(chip => {
+              const path = chip.dataset.preset.split(".");
+              const pair = scenePresets[path[0]][path[1]];
+              chip.setAttribute("aria-pressed", String(pair[0] === sceneSettings[path[0]].background && pair[1] === sceneSettings[path[0]].color));
+          });
+
+          const colors = [sceneSettings.waves.background, sceneSettings.waves.color, sceneSettings.matrix.background, sceneSettings.matrix.color].join("");
+          if (colors !== scenePainted) {
+              scenePainted = colors;
+              paintScenePreviews();
+          }
+      }
+
+      function sceneWaveLevel(u, v, time) {
+          let level = 0;
+          sceneWaves.forEach(wave => {
+              const delta = Math.sin(time * wave[0] * wave[1] * -1 + u * 2) * wave[2] + wave[3] - v;
+              const distance = Math.abs(delta) * ((wave[6] ? delta > 0 : delta < 0) ? 4 : 1);
+              const edge = wave[4] * 1.5;
+              const ramp = Math.min(1, Math.max(0, (edge - distance) / edge));
+              level += 0.3 * Math.pow(ramp * ramp * (3 - 2 * ramp), wave[5]);
+          });
+          return Math.min(1, level);
+      }
+
+      function paintScenePreviews() {
+          scenePanel.querySelectorAll("[data-preview]").forEach(canvas => {
+              const context = canvas.getContext("2d");
+              const kind = canvas.dataset.preview;
+              const width = canvas.width;
+              const height = canvas.height;
+              if (!context) return;
+              if (kind === "black") {
+                  context.fillStyle = "#000000";
+                  context.fillRect(0, 0, width, height);
+                  return;
+              }
+
+              const background = sceneRgb(sceneSettings[kind].background);
+              const color = sceneRgb(sceneSettings[kind].color);
+              if (kind === "waves") {
+                  const image = context.createImageData(width, height);
+                  for (let y = 0; y < height; y++) {
+                      for (let x = 0; x < width; x++) {
+                          const level = sceneWaveLevel(x / width, 1 - y / height, 6);
+                          const offset = (y * width + x) * 4;
+                          image.data[offset] = background[0] + (color[0] - background[0]) * level;
+                          image.data[offset + 1] = background[1] + (color[1] - background[1]) * level;
+                          image.data[offset + 2] = background[2] + (color[2] - background[2]) * level;
+                          image.data[offset + 3] = 255;
+                      }
+                  }
+                  context.putImageData(image, 0, 0);
+                  return;
+              }
+
+              const ink = sceneInk(background);
+              const size = 20;
+              context.fillStyle = sceneSettings.matrix.background;
+              context.fillRect(0, 0, width, height);
+              context.font = "600 " + size + "px monospace";
+              context.textBaseline = "top";
+              context.textAlign = "center";
+              for (let column = 0; column * size < width; column++) {
+                  const head = (column * 5 + 3) % 9;
+                  const tail = 4 + (column * 3) % 4;
+                  for (let step = 0; step <= tail; step++) {
+                      const glyph = sceneGlyphs.charAt((column * 17 + step * 29) % sceneGlyphs.length);
+                      const tone = step ? color : color.map((channel, index) => Math.round(channel + (ink[index] - channel) * 0.7));
+                      context.fillStyle = "rgba(" + tone.join(", ") + ", " + (1 - step / (tail + 1)) + ")";
+                      context.fillText(glyph, column * size + size / 2, (head - step) * size);
+                  }
+              }
+          });
+      }
+
+      function toggleScenePanel(open) {
+          scenePanel.classList.toggle("open", open);
+          sceneButton.setAttribute("aria-expanded", String(open));
+      }
+
+      function watchScene() {
+          Object.keys(scenePresets).forEach(mode => {
+              const holder = scenePanel.querySelector('[data-presets="' + mode + '"]');
+              scenePresets[mode].forEach((pair, index) => {
+                  const chip = document.createElementNS(htmlNS, "button");
+                  chip.setAttribute("type", "button");
+                  chip.setAttribute("class", "scene-preset");
+                  chip.setAttribute("aria-label", "Preset " + (index + 1));
+                  chip.dataset.preset = mode + "." + index;
+                  chip.style.setProperty("--preset-a", pair[0]);
+                  chip.style.setProperty("--preset-b", pair[1]);
+                  holder.appendChild(chip);
+              });
+          });
+
+          sceneButton.addEventListener("click", () => {
+              toggleScenePanel(!scenePanel.classList.contains("open"));
+          });
+
+          document.addEventListener("pointerdown", (e) => {
+              if (!scenePanel.classList.contains("open")) return;
+              if (scenePanel.contains(e.target) || sceneButton.contains(e.target)) return;
+              toggleScenePanel(false);
+          });
+
+          scenePanel.addEventListener("click", (e) => {
+              const button = e.target.closest ? e.target.closest("[data-mode], [data-preset]") : null;
+              if (!button) return;
+              if (button.dataset.preset) {
+                  const path = button.dataset.preset.split(".");
+                  sceneSettings[path[0]].background = scenePresets[path[0]][path[1]][0];
+                  sceneSettings[path[0]].color = scenePresets[path[0]][path[1]][1];
+                  themeScene();
+                  if (sceneRenderer) sceneRenderer.refresh(true);
+              } else {
+                  if (button.dataset.mode === sceneSettings.mode) return;
+                  sceneSettings.mode = button.dataset.mode;
+                  startScene();
+              }
+              saveScene();
+              syncScenePanel();
+          });
+
+          scenePanel.addEventListener("input", (e) => {
+              if (!e.target.dataset || !e.target.dataset.setting) return;
+              const path = e.target.dataset.setting.split(".");
+              sceneSettings[path[0]][path[1]] = e.target.type === "range" ? Number(e.target.value) : e.target.value;
+              themeScene();
+              if (sceneRenderer) sceneRenderer.refresh(false);
+              syncScenePanel();
+          });
+
+          scenePanel.addEventListener("change", saveScene);
+
+          window.addEventListener("resize", () => {
+              if (sceneRenderer) sceneRenderer.refresh(false);
+          });
+
+          syncScenePanel();
+          startScene();
+      }
+
       async function start() {
+          watchScene();
           const zonesReady = loadZones();
           zonesReady.catch(() => {});
           watchWidth();
