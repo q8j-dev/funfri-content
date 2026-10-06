@@ -780,6 +780,22 @@
         #scene-panel,
         #scene-panel.open { transition: none; }
       }
+      #commit {
+        position: fixed;
+        right: 10px;
+        bottom: 8px;
+        z-index: 12;
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 12px;
+        line-height: 14px;
+        color: #6f6f6f;
+        pointer-events: none;
+        user-select: none;
+      }
+      html.scene-on #commit {
+        color: rgba(var(--scene-ink), 0.8);
+        text-shadow: 0 0 8px rgb(var(--scene-rgb)), 0 0 2px rgb(var(--scene-rgb));
+      }
       #caleb-shoutout {
         display: block;
         margin-bottom: 6px;
@@ -898,6 +914,7 @@
         Background
       </button>
       <button type="button" id="caleb-button" aria-pressed="false">Enable Caleb Virus</button>
+      <div id="commit"></div>
       <div id="scene-panel" role="dialog" aria-label="Background">
         <div class="scene-modes" role="radiogroup" aria-label="Background style">
           <button type="button" class="scene-mode" role="radio" aria-checked="true" data-mode="black">
@@ -2135,16 +2152,9 @@
       }
 
       async function showCommit() {
-          const key = "funfri-commit";
-          try {
-              document.title = localStorage.getItem(key) || document.title;
-          } catch (error) {}
           try {
               const response = await fetch("https://api.github.com/repos/q8j-dev/funfri-content/commits/main", { headers: { Accept: "application/vnd.github.sha" } });
-              if (!response.ok) return;
-              const commit = (await response.text()).slice(0, 7);
-              document.title = commit;
-              localStorage.setItem(key, commit);
+              if (response.ok) document.getElementById("commit").textContent = (await response.text()).slice(0, 7);
           } catch (error) {}
       }
 
