@@ -5,7 +5,9 @@
     <title>hi</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Unbounded:wght@900&display=swap" rel="stylesheet" />
+    <link rel="preconnect" href="https://rawcdn.githack.com" />
+    <link rel="preconnect" href="https://raw.githubusercontent.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Unbounded:wght@900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
     <style>
       html {
         height: 100%;
@@ -32,6 +34,7 @@
       }
       #logo {
         position: relative;
+        min-height: 64px;
         user-select: none;
         font-family: "Unbounded", sans-serif;
         font-weight: 900;
@@ -46,6 +49,7 @@
       }
       #attribution {
         position: relative;
+        min-height: 16px;
         margin-top: 6px;
         user-select: none;
         font-family: "Space Grotesk", sans-serif;
@@ -144,11 +148,23 @@
         opacity: 0;
       }
       #container {
+        --card-size: 180px;
+        --card-gap: 25px;
+        display: flex;
+        flex-direction: column;
+        gap: var(--card-gap);
+        padding: 30px;
+      }
+      .zone-row {
         display: flex;
         flex-wrap: wrap;
-        gap: 25px;
+        gap: var(--card-gap);
         justify-content: center;
-        padding: 30px;
+        content-visibility: auto;
+        contain-intrinsic-height: var(--row-size, var(--card-size));
+      }
+      .zone-row.glow-open {
+        content-visibility: visible;
       }
       .zone-item {
         position: relative;
@@ -157,11 +173,12 @@
         background-color: #111111;
         border: 2px solid #333333;
         border-radius: 24px;
-        width: 180px;
+        width: var(--card-size);
         aspect-ratio: 1 / 1;
         text-align: center;
         cursor: pointer;
         transition: transform 0.25s ease, border-color 0.25s ease;
+        contain: size layout style;
       }
       .zone-item.glow-ready::before {
         content: "";
@@ -273,13 +290,34 @@
       const searchBar = document.getElementById('search-bar');
       const logoEl = document.getElementById('logo');
       const attributionEl = document.getElementById('attribution');
+      const fontSheet = document.querySelector('link[href*="fonts.googleapis.com/css"]');
       const htmlNS = "http://www.w3.org/1999/xhtml";
 
       const zonesURL = "https://rawcdn.githack.com/freebuisness/assets/main/zones.json";
       const coverURL = "https://rawcdn.githack.com/freebuisness/covers/main";
       const htmlURL = "https://rawcdn.githack.com/freebuisness/html/main";
 
-      let allZones = [];
+      const firstBatch = 48;
+      const eagerCovers = 18;
+      const buildBudget = 6;
+      const coverSize = Math.ceil(352 * (window.devicePixelRatio || 1));
+      const coverLimit = 12;
+      const glowFade = 400;
+
+      let entries = [];
+      let rows = [];
+      let built = 0;
+      let columns = 0;
+      let listed = false;
+      let searchTerm = "";
+      let coverWorker = null;
+      let coverObserver = null;
+      let coverCount = 0;
+      let localCovers = false;
+      const coverJobs = new Map();
+      const coverQueue = new Set();
+      const entryByCard = new WeakMap();
+      const rowByElement = new WeakMap();
 
       document.addEventListener("keydown", (e) => {
           const typing = /^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || "");
@@ -294,26 +332,394 @@
       });
 
       searchBar.addEventListener("input", (e) => {
-          const term = e.target.value.toLowerCase();
-          const filtered = allZones.filter(file => file.name.toLowerCase().includes(term));
-          displayZones(filtered);
+          searchTerm = e.target.value.toLowerCase();
+          entries.forEach(entry => {
+              entry.shown = entry.key.includes(searchTerm);
+          });
+          flowCards();
+      });
+
+      container.addEventListener("click", (e) => {
+          const card = e.target.closest ? e.target.closest(".zone-item") : null;
+          const entry = card ? entryByCard.get(card) : null;
+          if (entry) openZone(entry.file);
       });
 
       container.addEventListener("pointerover", (e) => {
           const card = e.target.closest ? e.target.closest(".zone-item") : null;
-          if (!card || card.classList.contains("glow-ready")) return;
-          card.style.setProperty("--cover", 'url("' + card.dataset.cover + '")');
+          if (!card) return;
+          const row = card.parentNode;
+          if (row && row !== container) row.classList.add("glow-open");
+          if (card.classList.contains("glow-ready")) return;
+          if (card.dataset.cover) card.style.setProperty("--cover", 'url("' + card.dataset.cover + '")');
           card.classList.add("glow-ready");
       });
 
-      async function listZones() {
+      container.addEventListener("pointerout", (e) => {
+          const row = e.target.closest ? e.target.closest(".zone-row") : null;
+          if (!row) return;
+          setTimeout(() => {
+              if (!row.matches(":hover")) row.classList.remove("glow-open");
+          }, glowFade);
+      });
+
+      container.addEventListener("contentvisibilityautostatechange", (e) => {
+          const row = rowByElement.get(e.target);
+          if (!row) return;
+          row.near = !e.skipped;
+          if (!coverWorker) return;
+          coverObserver.unobserve(row.element);
+          if (row.near) {
+              coverObserver.observe(row.element);
+          } else {
+              row.cards.forEach(entry => coverQueue.delete(entry));
+          }
+      });
+
+      function fitColumns(width) {
+          const style = getComputedStyle(container);
+          const size = parseFloat(style.getPropertyValue("--card-size")) || 180;
+          const gap = parseFloat(style.getPropertyValue("--card-gap")) || 0;
+          const fit = Math.max(1, Math.floor((width + gap) / (size + gap)));
+          if (width < size) {
+              container.style.setProperty("--row-size", width + "px");
+          } else {
+              container.style.removeProperty("--row-size");
+          }
+          if (fit === columns) return;
+          columns = fit;
+          flowCards();
+      }
+
+      function watchWidth() {
+          if (window.ResizeObserver) {
+              new ResizeObserver(records => fitColumns(records[records.length - 1].contentRect.width)).observe(container);
+              return;
+          }
+          const measure = () => {
+              const style = getComputedStyle(container);
+              fitColumns(container.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight));
+          };
+          window.addEventListener("resize", measure);
+          measure();
+      }
+
+      function createRow() {
+          const element = document.createElementNS(htmlNS, "div");
+          element.setAttribute("class", "zone-row");
+          const row = { element: element, cards: [], near: false };
+          rowByElement.set(element, row);
+          return row;
+      }
+
+      function fillRow(row, cards) {
+          const element = row.element;
+          if (cards.length === row.cards.length && cards.every((entry, slot) => entry === row.cards[slot])) return;
+          row.cards = cards;
+          cards.forEach((entry, slot) => {
+              const current = element.children[slot] || null;
+              if (current !== entry.card) element.insertBefore(entry.card, current);
+          });
+          while (element.children.length > cards.length) element.lastChild.remove();
+          if (row.near && coverWorker) {
+              coverObserver.unobserve(element);
+              coverObserver.observe(element);
+          }
+      }
+
+      function flowCards() {
+          if (!listed || !columns) return;
+          const shown = [];
+          for (let i = 0; i < built; i++) {
+              if (entries[i].shown) shown.push(entries[i]);
+          }
+          const count = Math.ceil(shown.length / columns);
+          while (rows.length > count) rows.pop().element.remove();
+          const added = document.createDocumentFragment();
+          while (rows.length < count) {
+              const row = createRow();
+              rows.push(row);
+              added.appendChild(row.element);
+          }
+          rows.forEach((row, index) => fillRow(row, shown.slice(index * columns, (index + 1) * columns)));
+          container.appendChild(added);
+      }
+
+      function coverWorkerMain() {
+          const waiting = [];
+          let decoding = 0;
+
+          function takeSlot() {
+              if (decoding < 2) {
+                  decoding++;
+                  return Promise.resolve();
+              }
+              return new Promise(resolve => waiting.push(resolve));
+          }
+
+          function freeSlot() {
+              const next = waiting.shift();
+              if (next) {
+                  next();
+              } else {
+                  decoding--;
+              }
+          }
+
+          async function shrink(blob, size) {
+              await takeSlot();
+              try {
+                  const bitmap = await createImageBitmap(blob);
+                  const width = bitmap.width;
+                  const height = bitmap.height;
+                  const scale = size / Math.max(width, height);
+                  let cover = blob;
+                  if (scale < 1 && blob.type !== "image/gif") {
+                      const canvas = new OffscreenCanvas(Math.max(1, Math.round(width * scale)), Math.max(1, Math.round(height * scale)));
+                      const context = canvas.getContext("2d");
+                      context.imageSmoothingQuality = "high";
+                      context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+                      cover = await canvas.convertToBlob({ type: "image/webp", quality: 0.92 });
+                  }
+                  bitmap.close();
+                  return { blob: cover, url: URL.createObjectURL(cover), ratio: width / (height || 1) };
+              } finally {
+                  freeSlot();
+              }
+          }
+
+          self.onmessage = async (e) => {
+              const job = e.data;
+              if (job.glyphs) {
+                  const context = new OffscreenCanvas(1, 1).getContext("2d");
+                  context.font = "600 14px sans-serif";
+                  context.measureText(job.glyphs);
+                  self.postMessage({ glyphs: job.glyphs });
+                  return;
+              }
+              try {
+                  const response = await fetch(job.src);
+                  if (!response.ok) throw new Error("HTTP " + response.status);
+                  const cover = await shrink(await response.blob(), job.size);
+                  self.postMessage({ id: job.id, blob: cover.blob, url: cover.url, ratio: cover.ratio });
+              } catch (error) {
+                  self.postMessage({ id: job.id, failed: true });
+              }
+          };
+      }
+
+      function startCovers() {
+          if (!window.Worker || !window.OffscreenCanvas || !window.createImageBitmap || !window.IntersectionObserver) return;
+          if (!("oncontentvisibilityautostatechange" in container)) return;
           try {
-              const response = await fetch(zonesURL + "?t=" + Date.now());
-              const data = await response.json();
+              const source = new Blob(["(" + coverWorkerMain.toString() + ")()"], { type: "text/javascript" });
+              coverObserver = new IntersectionObserver(queueCovers);
+              coverWorker = new Worker(URL.createObjectURL(source));
+              coverWorker.onmessage = finishCover;
+              coverWorker.onerror = stopCovers;
+          } catch (e) {
+              stopCovers();
+          }
+      }
 
-              allZones = data.sort((a, b) => a.name.localeCompare(b.name));
+      function stopCovers() {
+          if (coverObserver) coverObserver.disconnect();
+          coverWorker = null;
+          coverObserver = null;
+          coverJobs.clear();
+          coverQueue.clear();
+          entries.forEach(entry => {
+              if (entry.card && !entry.covered) plainCover(entry);
+          });
+      }
 
-              displayZones(allZones);
+      function fitCover(e) {
+          const img = e.currentTarget;
+          const r = img.naturalWidth / (img.naturalHeight || 1);
+          if (Math.abs(r - 1) > 0.01) img.classList.add("fit-whole");
+      }
+
+      function retryCover(e) {
+          const entry = entryByCard.get(e.currentTarget.parentNode);
+          if (!entry || e.currentTarget.getAttribute("src") === entry.src) return;
+          if (entry.blob) {
+              localCovers = true;
+              showCover(entry, URL.createObjectURL(entry.blob));
+              entry.blob = null;
+          } else {
+              plainCover(entry);
+          }
+      }
+
+      function showCover(entry, src) {
+          entry.covered = true;
+          entry.img.setAttribute("src", src);
+          entry.card.dataset.cover = src;
+          if (entry.card.classList.contains("glow-ready")) entry.card.style.setProperty("--cover", 'url("' + src + '")');
+      }
+
+      function plainCover(entry) {
+          entry.img.addEventListener("load", fitCover);
+          entry.img.setAttribute("loading", "lazy");
+          showCover(entry, entry.src);
+      }
+
+      function loadCover(entry) {
+          entry.loading = true;
+          coverCount++;
+          coverJobs.set(coverCount, entry);
+          coverQueue.delete(entry);
+          coverWorker.postMessage({ id: coverCount, src: entry.src, size: coverSize });
+      }
+
+      function pumpCovers() {
+          for (const entry of coverQueue) {
+              if (coverJobs.size >= coverLimit) break;
+              loadCover(entry);
+          }
+      }
+
+      function queueCovers(records) {
+          const middle = window.innerHeight / 2;
+          const near = [];
+          records.forEach(record => {
+              const row = rowByElement.get(record.target);
+              coverObserver.unobserve(record.target);
+              if (!row || !row.near) return;
+              const box = record.boundingClientRect;
+              near.push({ row: row, distance: Math.abs(box.top + box.height / 2 - middle) });
+          });
+          near.sort((a, b) => a.distance - b.distance);
+          near.forEach(item => {
+              item.row.cards.forEach(entry => {
+                  if (!entry.loading && !entry.covered) coverQueue.add(entry);
+              });
+          });
+          pumpCovers();
+      }
+
+      function warmGlyphs(glyphs) {
+          const idle = window.requestIdleCallback || setTimeout;
+          idle(() => {
+              const context = document.createElementNS(htmlNS, "canvas").getContext("2d");
+              context.font = "600 14px \"Space Grotesk\", sans-serif";
+              context.measureText(glyphs);
+          });
+      }
+
+      function finishCover(e) {
+          if (e.data.glyphs) {
+              warmGlyphs(e.data.glyphs);
+              return;
+          }
+          const entry = coverJobs.get(e.data.id);
+          if (!entry) return;
+          coverJobs.delete(e.data.id);
+          if (e.data.failed) {
+              plainCover(entry);
+          } else {
+              if (Math.abs(e.data.ratio - 1) > 0.01) entry.img.classList.add("fit-whole");
+              entry.blob = localCovers ? null : e.data.blob;
+              showCover(entry, localCovers ? URL.createObjectURL(e.data.blob) : e.data.url);
+          }
+          pumpCovers();
+      }
+
+      function createCard(entry, eager) {
+          const file = entry.file;
+
+          const zoneItem = document.createElementNS(htmlNS, "div");
+          zoneItem.setAttribute("class", "zone-item");
+          entryByCard.set(zoneItem, entry);
+
+          const img = document.createElementNS(htmlNS, "img");
+          img.setAttribute("class", "zone-cover");
+          img.setAttribute("alt", "");
+          img.setAttribute("decoding", "async");
+          img.addEventListener("error", retryCover);
+
+          const title = document.createElementNS(htmlNS, "div");
+          title.setAttribute("class", "zone-name");
+          const fullName = String(file.name);
+          title.textContent = fullName;
+          zoneItem.setAttribute("title", fullName);
+
+          zoneItem.appendChild(img);
+          zoneItem.appendChild(title);
+          entry.card = zoneItem;
+          entry.img = img;
+          entry.src = file.cover.replace("{COVER_URL}", coverURL).replace("{HTML_URL}", htmlURL);
+
+          if (!coverWorker) {
+              plainCover(entry);
+          } else if (eager) {
+              loadCover(entry);
+          }
+      }
+
+      function buildCards(minimum) {
+          const target = Math.min(entries.length, built + minimum);
+          const deadline = performance.now() + buildBudget;
+          while (built < entries.length && (built < target || performance.now() < deadline)) {
+              createCard(entries[built], built < eagerCovers);
+              built++;
+          }
+      }
+
+      function buildRemaining() {
+          if (built >= entries.length) return;
+          buildCards(1);
+          flowCards();
+          requestAnimationFrame(() => setTimeout(buildRemaining, 0));
+      }
+
+      async function loadZones() {
+          const response = await fetch(zonesURL + "?t=" + Date.now());
+          const data = await response.json();
+          const collator = new Intl.Collator();
+
+          data.sort((a, b) => collator.compare(a.name, b.name));
+          entries = [];
+          data.forEach(file => {
+              if (file.id === -1) return;
+              if (String(file.name).trim() === "[!] COMMENTS") return;
+              const key = String(file.name).toLowerCase();
+              entries.push({ file: file, key: key, shown: key.includes(searchTerm), card: null, img: null, src: "", blob: null, loading: false, covered: false });
+          });
+
+          startCovers();
+          buildCards(firstBatch);
+
+          const glyphs = entries.map(entry => entry.key).join("").replace(/[\u0000-ɏ]/g, "");
+          if (coverWorker && glyphs) coverWorker.postMessage({ glyphs: glyphs });
+      }
+
+      async function loadFonts() {
+          try {
+              if (fontSheet) {
+                  if (!fontSheet.sheet) {
+                      await new Promise(resolve => {
+                          fontSheet.addEventListener("load", resolve);
+                          fontSheet.addEventListener("error", resolve);
+                      });
+                  }
+                  fontSheet.media = "all";
+              }
+              await Promise.all([
+                  document.fonts.load("900 56px Unbounded"),
+                  document.fonts.load("600 15px \"Space Grotesk\"")
+              ]);
+              await document.fonts.ready;
+          } catch (e) {}
+      }
+
+      async function listZones(zonesReady) {
+          try {
+              await zonesReady;
+              container.innerHTML = "";
+              listed = true;
+              flowCards();
+              requestAnimationFrame(() => setTimeout(buildRemaining, 0));
           } catch (error) {
               console.error(error);
               container.innerHTML = "";
@@ -322,41 +728,6 @@
               container.appendChild(status);
               status.textContent = "Error loading games: " + error;
           }
-      }
-
-      function displayZones(zones) {
-          container.innerHTML = "";
-          zones.forEach(file => {
-              if (file.id === -1) return;
-              if (String(file.name).trim() === "[!] COMMENTS") return;
-
-              const zoneItem = document.createElementNS(htmlNS, "div");
-              zoneItem.setAttribute("class", "zone-item");
-              zoneItem.onclick = () => openZone(file);
-
-              const img = document.createElementNS(htmlNS, "img");
-              img.setAttribute("class", "zone-cover");
-              const coverSrc = file.cover.replace("{COVER_URL}", coverURL).replace("{HTML_URL}", htmlURL);
-              zoneItem.dataset.cover = coverSrc;
-              img.addEventListener("load", () => {
-                  const r = img.naturalWidth / (img.naturalHeight || 1);
-                  if (Math.abs(r - 1) > 0.01) img.classList.add("fit-whole");
-              });
-              img.setAttribute("src", coverSrc);
-              img.setAttribute("alt", "");
-              img.setAttribute("loading", "lazy");
-              img.setAttribute("decoding", "async");
-
-              const title = document.createElementNS(htmlNS, "div");
-              title.setAttribute("class", "zone-name");
-              const fullName = String(file.name);
-              title.textContent = fullName;
-              zoneItem.setAttribute("title", fullName);
-
-              zoneItem.appendChild(img);
-              zoneItem.appendChild(title);
-              container.appendChild(zoneItem);
-          });
       }
 
       function openZone(file) {
@@ -397,11 +768,11 @@
       }
 
       async function start() {
-          try {
-              await document.fonts.load("900 56px Unbounded");
-              await document.fonts.load("600 15px \"Space Grotesk\"");
-              await document.fonts.ready;
-          } catch (e) {}
+          const zonesReady = loadZones();
+          zonesReady.catch(() => {});
+          watchWidth();
+
+          await loadFonts();
 
           logoEl.textContent = "FunFri";
 
@@ -419,7 +790,7 @@
           status.textContent = "Loading games...";
           container.appendChild(status);
 
-          listZones();
+          listZones(zonesReady);
       }
 
       start();
