@@ -335,7 +335,8 @@
         height: 100%;
         pointer-events: none;
       }
-      #scene-button {
+      #scene-button,
+      #caleb-button {
         position: absolute;
         top: 14px;
         right: 16px;
@@ -358,12 +359,19 @@
         user-select: none;
         transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s, color 0.2s;
       }
-      #scene-button:hover {
+      #caleb-button {
+        right: auto;
+        left: 16px;
+      }
+      #scene-button:hover,
+      #caleb-button:hover {
         border-color: rgba(255, 255, 255, 0.22);
         color: #ffffff;
       }
       #scene-button:focus-visible,
-      #scene-button[aria-expanded="true"] {
+      #scene-button[aria-expanded="true"],
+      #caleb-button:focus-visible,
+      #caleb-button[aria-pressed="true"] {
         border-color: rgba(255, 255, 255, 0.6);
         background-color: rgba(255, 255, 255, 0.07);
         box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.07);
@@ -659,19 +667,25 @@
         color: rgb(var(--scene-ink));
         text-shadow: 0 0 8px rgb(var(--scene-rgb)), 0 0 2px rgb(var(--scene-rgb));
       }
-      html.scene-on #scene-button {
+      html.scene-on #scene-button,
+      html.scene-on #caleb-button {
         border-color: rgba(var(--scene-ink), 0.24);
         background-color: rgba(var(--scene-rgb), 0.8);
         color: rgba(var(--scene-ink), 0.72);
       }
       html.scene-on #scene-button:hover,
       html.scene-on #scene-button[aria-expanded="true"],
-      html.scene-on #scene-button:focus-visible {
+      html.scene-on #scene-button:focus-visible,
+      html.scene-on #caleb-button:hover,
+      html.scene-on #caleb-button[aria-pressed="true"],
+      html.scene-on #caleb-button:focus-visible {
         border-color: rgba(var(--scene-ink), 0.6);
         color: rgb(var(--scene-ink));
       }
       html.scene-on #scene-button[aria-expanded="true"],
-      html.scene-on #scene-button:focus-visible {
+      html.scene-on #scene-button:focus-visible,
+      html.scene-on #caleb-button[aria-pressed="true"],
+      html.scene-on #caleb-button:focus-visible {
         box-shadow: 0 0 0 4px rgba(var(--scene-ink), 0.1);
       }
       html.scene-on #scene-panel {
@@ -732,37 +746,92 @@
       }
       .caleb-peek {
         position: fixed;
-        width: clamp(170px, 17vw, 260px);
         z-index: 9999;
         pointer-events: none;
         transition: transform 0.9s cubic-bezier(0.34, 1.56, 0.64, 1);
       }
-      .caleb-peek.bottom {
-        bottom: 0;
-        left: var(--at);
-        transform: translate(-50%, 105%);
+      @font-face {
+        font-family: "MS Sans Serif";
+        font-weight: 400;
+        font-display: swap;
+        src: url("https://cdn.jsdelivr.net/npm/98.css@0.1.20/dist/ms_sans_serif.woff2") format("woff2"), url("https://unpkg.com/98.css@0.1.20/dist/ms_sans_serif.woff2") format("woff2");
       }
-      .caleb-peek.bottom.visible {
-        transform: translate(-50%, 14%);
+      @font-face {
+        font-family: "MS Sans Serif";
+        font-weight: 700;
+        font-display: swap;
+        src: url("https://cdn.jsdelivr.net/npm/98.css@0.1.20/dist/ms_sans_serif_bold.woff2") format("woff2"), url("https://unpkg.com/98.css@0.1.20/dist/ms_sans_serif_bold.woff2") format("woff2");
       }
-      .caleb-peek.left {
-        left: 0;
-        top: var(--at);
-        transform: translate(-85%, -50%) rotate(90deg);
+      .caleb-window {
+        position: fixed;
+        z-index: 10000;
+        width: 250px;
+        box-sizing: border-box;
+        padding: 2px;
+        background: #c0c0c0;
+        border: 2px solid;
+        border-color: #ffffff #404040 #404040 #ffffff;
+        box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.55);
+        font-family: "MS Sans Serif", "Microsoft Sans Serif", Tahoma, Arial, sans-serif;
+        font-size: 11px;
+        line-height: 14px;
+        -webkit-font-smoothing: none;
+        color: #000000;
+        user-select: none;
+        animation: caleb-pop 0.35s ease-out;
       }
-      .caleb-peek.left.visible {
-        transform: translate(-30%, -50%) rotate(90deg);
+      .caleb-window-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 3px 3px 3px 6px;
+        background: linear-gradient(90deg, #000080, #1084d0);
+        color: #ffffff;
+        font-weight: bold;
       }
-      .caleb-peek.right {
-        right: 0;
-        top: var(--at);
-        transform: translate(85%, -50%) rotate(-90deg);
+      .caleb-window-body {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 10px 8px 10px;
       }
-      .caleb-peek.right.visible {
-        transform: translate(30%, -50%) rotate(-90deg);
+      .caleb-window-body img {
+        flex: none;
+        width: 64px;
+        height: 64px;
+        object-fit: cover;
+      }
+      .caleb-window-body p {
+        margin: 0;
+      }
+      .caleb-window button {
+        font: inherit;
+        color: #000000;
+        background: #c0c0c0;
+        border: 2px solid;
+        border-color: #ffffff #404040 #404040 #ffffff;
+        border-radius: 0;
+        padding: 0 5px;
+        cursor: pointer;
+      }
+      .caleb-window button:active {
+        border-color: #404040 #ffffff #ffffff #404040;
+      }
+      .caleb-window-ok {
+        display: block;
+        min-width: 72px;
+        margin: 0 auto 8px auto;
+        line-height: 18px;
+      }
+      @keyframes caleb-pop {
+        0% { transform: scale(0.5) rotate(-6deg); }
+        55% { transform: scale(1.08) rotate(3deg); }
+        80% { transform: scale(0.98) rotate(-2deg); }
+        100% { transform: none; }
       }
       @media (prefers-reduced-motion: reduce) {
         .caleb-peek { transition: none; }
+        .caleb-window { animation: none; }
       }
     </style>
   </head>
@@ -780,6 +849,7 @@
       <button type="button" id="scene-button" aria-haspopup="dialog" aria-expanded="false" aria-controls="scene-panel">
         Background
       </button>
+      <button type="button" id="caleb-button" aria-pressed="false">Enable Caleb Virus</button>
       <div id="scene-panel" role="dialog" aria-label="Background">
         <div class="scene-modes" role="radiogroup" aria-label="Background style">
           <button type="button" class="scene-mode" role="radio" aria-checked="true" data-mode="black">
@@ -1844,6 +1914,136 @@
           startScene();
       }
 
+      function calebVirus() {
+          const bytes = Uint8Array.from(atob(CALEB_B64), c => c.charCodeAt(0));
+          const face = URL.createObjectURL(new Blob([bytes], { type: "image/webp" }));
+          const between = (low, high) => low + Math.random() * (high - low);
+          const pick = list => list[Math.floor(Math.random() * list.length)];
+          const turns = { bottom: 0, left: 90, top: 180, right: -90 };
+          const notices = [
+              "1 new caleb detected",
+              "caleb.exe has stopped working",
+              "your chromebook has caleb",
+              "caleb is on the proxies again",
+              "caleb cannot be removed",
+              "installing caleb... 99%",
+              "this site is protected by caleb",
+              "free robux. jk its caleb"
+          ];
+          const button = document.getElementById("caleb-button");
+          const closers = new Set();
+          let active = false;
+          let timer = 0;
+          let peeking = 0;
+
+          function make(tag, name, text) {
+              const node = document.createElementNS(htmlNS, tag);
+              if (name) node.className = name;
+              if (text) node.textContent = text;
+              return node;
+          }
+
+          function peek(side, at, scale, show, tilt, stay) {
+              const img = make("img", "caleb-peek");
+              const flat = side === "bottom" || side === "top";
+              const sign = side === "bottom" || side === "left" ? 1 : -1;
+              const turn = " rotate(" + (turns[side] + tilt) + "deg)";
+              const hidden = (flat ? "translate(-50%, " + sign * 140 + "%)" : "translate(" + sign * -100 + "%, -50%)") + turn;
+              const shown = (flat ? "translate(-50%, " + sign * (1 - show) * 100 + "%)" : "translate(" + sign * (show * 56.25 - 78.125) + "%, -50%)") + turn;
+              img.setAttribute("alt", "");
+              img.setAttribute("src", face);
+              img.style.width = "calc(clamp(170px, 17vw, 260px) * " + scale + ")";
+              img.style[side] = "0";
+              img.style[flat ? "left" : "top"] = at + "%";
+              img.style.transitionDuration = between(0.2, 0.9) + "s";
+              img.style.transform = hidden;
+              document.body.appendChild(img);
+              img.getBoundingClientRect();
+              img.style.transform = shown;
+              peeking++;
+              setTimeout(() => {
+                  img.style.transform = hidden;
+                  setTimeout(() => {
+                      img.remove();
+                      peeking--;
+                  }, 1000);
+              }, stay);
+          }
+
+          function randomPeek() {
+              if (!active || peeking >= 22) return;
+              peek(pick(Object.keys(turns)), between(6, 94), between(1, 2.1), between(0.4, 0.9), between(-18, 18), between(500, 3600));
+          }
+
+          function notice() {
+              if (!active || closers.size >= 6) return;
+              const box = make("div", "caleb-window");
+              const bar = make("div", "caleb-window-bar");
+              const body = make("div", "caleb-window-body");
+              const shut = make("button", "", "x");
+              const ok = make("button", "caleb-window-ok", "ok");
+              const img = make("img");
+              const close = spread => {
+                  if (!closers.delete(close)) return;
+                  box.remove();
+                  if (spread) {
+                      notice();
+                      notice();
+                  }
+              };
+              closers.add(close);
+              shut.setAttribute("type", "button");
+              ok.setAttribute("type", "button");
+              img.setAttribute("alt", "");
+              img.setAttribute("src", face);
+              bar.appendChild(make("span", "", "caleb.exe"));
+              bar.appendChild(shut);
+              body.appendChild(img);
+              body.appendChild(make("p", "", pick(notices)));
+              box.appendChild(bar);
+              box.appendChild(body);
+              box.appendChild(ok);
+              box.style.left = between(8, Math.max(8, innerWidth - 266)) + "px";
+              box.style.top = between(8, Math.max(8, innerHeight - 170)) + "px";
+              shut.addEventListener("click", () => close(Math.random() < 0.5));
+              ok.addEventListener("click", () => close(Math.random() < 0.5));
+              document.body.appendChild(box);
+              setTimeout(() => close(false), between(5000, 9000));
+          }
+
+          function tick() {
+              if (!document.hidden && active) {
+                  const count = Math.round(Math.random() < 0.1 ? between(7, 14) : between(1, 3));
+                  for (let i = 0; i < count; i++) setTimeout(randomPeek, i * between(40, 160));
+                  if (Math.random() < 0.1) notice();
+              } else if (!document.hidden) {
+                  peek(pick(["left", "right", "bottom"]), between(15, 85), between(1, 1.25), between(0.5, 0.8), between(-6, 6), between(2500, 5000));
+              }
+              timer = setTimeout(tick, active ? between(400, 2400) : between(5000, 11000));
+          }
+
+          button.addEventListener("click", () => {
+              active = !active;
+              button.textContent = active ? "Disable Caleb Virus" : "Enable Caleb Virus";
+              button.setAttribute("aria-pressed", String(active));
+              clearTimeout(timer);
+              if (active) {
+                  notice();
+                  tick();
+              } else {
+                  Array.from(closers).forEach(close => close(false));
+                  timer = setTimeout(tick, 5000);
+              }
+          });
+
+          const ready = () => {
+              timer = setTimeout(tick, 1500);
+          };
+          const first = new Image();
+          first.src = face;
+          first.decode().then(ready, ready);
+      }
+
       async function start() {
           guardTab();
           watchScene();
@@ -1868,19 +2068,7 @@
           gnMathLink.textContent = "gn-math";
           attributionEl.appendChild(gnMathLink);
 
-          var calebSrc = "data:image/webp;base64," + CALEB_B64;
-          [
-            ["left", "30%"], ["right", "44%"], ["bottom", "30%"],
-            ["left", "68%"], ["right", "80%"], ["bottom", "70%"]
-          ].forEach(function(spot, index) {
-            var img = document.createElementNS(htmlNS, "img");
-            img.className = "caleb-peek " + spot[0];
-            img.style.setProperty("--at", spot[1]);
-            img.setAttribute("alt", "");
-            img.setAttribute("src", calebSrc);
-            document.body.appendChild(img);
-            setTimeout(function() { img.classList.add("visible"); }, 1500 + index * 350);
-          });
+          calebVirus();
 
           container.innerHTML = "";
           const status = document.createElementNS(htmlNS, "div");
