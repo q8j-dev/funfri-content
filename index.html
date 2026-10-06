@@ -314,6 +314,9 @@
         border-radius: 22px;
         pointer-events: none;
       }
+      .zone-item img.zone-cover:not([src]) {
+        visibility: hidden;
+      }
       .zone-item img.zone-cover.fit-whole {
         object-fit: contain;
         background-color: #111111;
@@ -2131,8 +2134,23 @@
           first.decode().then(ready, ready);
       }
 
+      async function showCommit() {
+          const key = "funfri-commit";
+          try {
+              document.title = localStorage.getItem(key) || document.title;
+          } catch (error) {}
+          try {
+              const response = await fetch("https://api.github.com/repos/q8j-dev/funfri-content/commits/main", { headers: { Accept: "application/vnd.github.sha" } });
+              if (!response.ok) return;
+              const commit = (await response.text()).slice(0, 7);
+              document.title = commit;
+              localStorage.setItem(key, commit);
+          } catch (error) {}
+      }
+
       async function start() {
           guardTab();
+          showCommit();
           watchScene();
           const zonesReady = loadZones();
           zonesReady.catch(() => {});
