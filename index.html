@@ -44,43 +44,31 @@
           }
       }
 
-      (function() {
-          var match = /^#play=(.+)$/.exec(location.hash);
-          if (!match) return;
-          var game;
-          try {
-              game = new URL(decodeURIComponent(match[1]));
-          } catch (e) {
-              return;
-          }
-          if (game.origin !== "https://rawcdn.githack.com" || game.pathname.indexOf("/freebuisness/") !== 0) return;
-
-          document.write("<template>");
-          document.addEventListener("DOMContentLoaded", function() {
-              document.open();
-              document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Tab</title>' +
-                  '<style>html,body{margin:0;padding:0;height:100%;background:#000;overflow:hidden}' +
-                  '#msg{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-family:Arial,sans-serif}</style>' +
-                  '</head><body><div id="msg"><h2>Loading game...</h2></div></body></html>');
-              document.close();
-
-              fetch(game.href + "?t=" + Date.now()).then(function(response) {
-                  if (!response.ok) throw new Error("HTTP " + response.status);
-                  return response.text();
-              }).then(function(html) {
-                  var lead = "<script>(" + guardTab.toString() + ")();document.title=\"Tab\";<\/script>";
-                  if (!/<base[\s>]/i.test(html)) lead += '<base href="' + game.href + '">';
-                  html = /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, function(found) { return found + lead; }) : lead + html;
-                  document.open();
-                  document.write(html);
-                  document.close();
-                  document.title = "Tab";
-              }).catch(function(error) {
-                  var heading = document.querySelector("#msg h2");
-                  if (heading) heading.textContent = "Error loading game: " + error;
-              });
+      function realAddress() {
+          var NativeURL = window.URL;
+          var here = location.href.split("#")[0];
+          window.URL = new Proxy(NativeURL, {
+              construct: function(target, args, newTarget) {
+                  if (args.length > 1 && String(args[1]).split("#")[0] === here) args[1] = document.baseURI;
+                  return Reflect.construct(target, args, newTarget);
+              }
           });
-      })();
+          ["URL", "documentURI"].forEach(function(name) {
+              Object.defineProperty(document, name, { configurable: true, get: function() { return document.baseURI; } });
+          });
+          document.title = "Tab";
+          addEventListener("load", function() { document.title = "Tab"; });
+      }
+
+      function waitForGame(id) {
+          var channel = new BroadcastChannel("funfri-game");
+          channel.onmessage = function(e) {
+              if (!e.data || e.data.id !== id) return;
+              if (e.data.url) location.replace(e.data.url);
+              else document.querySelector("#msg h2").textContent = "Error loading game: " + e.data.error;
+          };
+          channel.postMessage({ want: id });
+      }
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
@@ -1265,6 +1253,34 @@
           }
       }
 
+      const gameChannel = new BroadcastChannel("funfri-game");
+      const gamePages = new Map();
+
+      gameChannel.onmessage = (e) => {
+          const id = e.data && e.data.want;
+          const game = gamePages.get(id);
+          if (!game) return;
+          game.then(
+              url => gameChannel.postMessage({ id, url }),
+              error => gameChannel.postMessage({ id, error: String(error) })
+          );
+      };
+
+      function blobPage(html) {
+          return URL.createObjectURL(new Blob([html], { type: "text/html;charset=utf-8" }));
+      }
+
+      async function buildGame(url) {
+          const response = await fetch(url + "?t=" + Date.now());
+          if (!response.ok) throw new Error("HTTP " + response.status);
+          let html = await response.text();
+          let lead = "<script>(" + guardTab + ")();(" + realAddress + ")();<\/script>";
+          if (!/<base[\s>]/i.test(html)) lead += '<base href="' + url + '">';
+          const anchor = [/<head(\s[^>]*)?>/i, /<html(\s[^>]*)?>/i, /<!doctype[^>]*>/i].find(tag => tag.test(html));
+          html = anchor ? html.replace(anchor, found => found + lead) : lead + html;
+          return blobPage(html);
+      }
+
       function openZone(file) {
           if (file.url.startsWith("http")) {
               window.open(file.url, "_blank");
@@ -1272,7 +1288,16 @@
           }
 
           const url = file.url.replace("{COVER_URL}", coverURL).replace("{HTML_URL}", htmlURL);
-          window.open(location.href.split("#")[0] + "#play=" + encodeURIComponent(url), "_blank", "noopener");
+          const id = Date.now().toString(36) + Math.random().toString(36).slice(2);
+          const game = buildGame(url);
+          game.catch(() => {});
+          gamePages.set(id, game);
+
+          window.open(blobPage('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Tab</title>' +
+              '<style>html,body{margin:0;padding:0;height:100%;background:#000;overflow:hidden}' +
+              '#msg{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-family:Arial,sans-serif}</style>' +
+              '</head><body><div id="msg"><h2>Loading game...</h2></div>' +
+              "<script>(" + waitForGame + ")(" + JSON.stringify(id) + ");<\/script></body></html>"), "_blank", "noopener");
       }
 
       function loadScene() {
