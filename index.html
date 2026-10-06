@@ -362,7 +362,7 @@
       #caleb-button {
         right: auto;
         left: 16px;
-        z-index: 10001;
+        z-index: 2000000000;
       }
       #scene-button:hover,
       #caleb-button:hover {
@@ -779,6 +779,7 @@
         -webkit-font-smoothing: none;
         color: #000000;
         user-select: none;
+        touch-action: none;
         animation: caleb-pop 0.35s ease-out;
       }
       .caleb-window-bar {
@@ -1935,6 +1936,7 @@
           let active = false;
           let timer = 0;
           let peeking = 0;
+          let front = 10000;
 
           function make(tag, name, text) {
               const node = document.createElementNS(htmlNS, tag);
@@ -1995,6 +1997,7 @@
               shut.setAttribute("type", "button");
               ok.setAttribute("type", "button");
               img.setAttribute("alt", "");
+              img.setAttribute("draggable", "false");
               img.setAttribute("src", face);
               bar.appendChild(make("span", "", "caleb.exe"));
               bar.appendChild(shut);
@@ -2007,8 +2010,32 @@
               box.style.top = between(8, Math.max(8, innerHeight - 170)) + "px";
               shut.addEventListener("click", () => close(Math.random() < 0.75));
               ok.addEventListener("click", () => close(Math.random() < 0.75));
+              let held = false;
+              box.addEventListener("pointerdown", e => {
+                  box.style.zIndex = ++front;
+                  if (e.button !== 0 || e.target.closest("button")) return;
+                  e.preventDefault();
+                  const offsetX = e.clientX - box.offsetLeft;
+                  const offsetY = e.clientY - box.offsetTop;
+                  const move = at => {
+                      box.style.left = Math.min(Math.max(at.clientX - offsetX, 40 - box.offsetWidth), innerWidth - 40) + "px";
+                      box.style.top = Math.min(Math.max(at.clientY - offsetY, 0), innerHeight - 24) + "px";
+                  };
+                  const drop = () => {
+                      held = false;
+                      box.removeEventListener("pointermove", move);
+                      box.removeEventListener("pointerup", drop);
+                      box.removeEventListener("pointercancel", drop);
+                  };
+                  held = true;
+                  box.setPointerCapture(e.pointerId);
+                  box.addEventListener("pointermove", move);
+                  box.addEventListener("pointerup", drop);
+                  box.addEventListener("pointercancel", drop);
+              });
+              const expire = () => held ? setTimeout(expire, 1000) : close(false);
               document.body.appendChild(box);
-              setTimeout(() => close(false), between(5000, 9000));
+              setTimeout(expire, between(5000, 9000));
           }
 
           function tick() {
