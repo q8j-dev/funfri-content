@@ -719,6 +719,26 @@
         #scene-panel,
         #scene-panel.open { transition: none; }
       }
+      #caleb-shoutout {
+        font-size: 18px;
+        display: block;
+        margin-top: 4px;
+      }
+      #caleb-peek {
+        position: fixed;
+        bottom: -300px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 420px;
+        max-width: 90vw;
+        z-index: 9999;
+        pointer-events: none;
+        transition: bottom 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        image-rendering: auto;
+      }
+      #caleb-peek.visible {
+        bottom: -40px;
+      }
     </style>
   </head>
   <body>
@@ -1818,8 +1838,16 @@
           attributionEl.appendChild(gnMathLink);
           attributionEl.appendChild(document.createElementNS(htmlNS, "br"));
           const shoutout = document.createElementNS(htmlNS, "span");
+          shoutout.setAttribute("id", "caleb-shoutout");
           shoutout.textContent = "shoutout to caleb parrish for going on the proxies in class ❤️";
           attributionEl.appendChild(shoutout);
+
+          const calebImg = document.createElementNS(htmlNS, "img");
+          calebImg.setAttribute("id", "caleb-peek");
+          calebImg.setAttribute("alt", "");
+          calebImg.setAttribute("src", "caleb.webp");
+          document.body.appendChild(calebImg);
+          setTimeout(function() { calebImg.classList.add("visible"); }, 2000);
 
           container.innerHTML = "";
           const status = document.createElementNS(htmlNS, "div");
