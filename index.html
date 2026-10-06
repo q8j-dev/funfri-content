@@ -721,27 +721,48 @@
       }
       #caleb-shoutout {
         display: block;
-        margin-bottom: 2px;
+        margin-bottom: 6px;
+        font-size: 22px;
+        line-height: 28px;
+        font-weight: 600;
+        color: #d0d0d0;
+      }
+      html.scene-on #caleb-shoutout {
+        color: rgb(var(--scene-ink));
       }
       .caleb-peek {
         position: fixed;
-        bottom: -160px;
-        width: 240px;
+        width: clamp(170px, 17vw, 260px);
         z-index: 9999;
         pointer-events: none;
-        opacity: 0.45;
-        transition: bottom 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+        transition: transform 0.9s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      .caleb-peek.bottom {
+        bottom: 0;
+        left: var(--at);
+        transform: translate(-50%, 105%);
+      }
+      .caleb-peek.bottom.visible {
+        transform: translate(-50%, 14%);
       }
       .caleb-peek.left {
-        left: -30px;
-        transform: rotate(6deg);
+        left: 0;
+        top: var(--at);
+        transform: translate(-85%, -50%) rotate(90deg);
+      }
+      .caleb-peek.left.visible {
+        transform: translate(-30%, -50%) rotate(90deg);
       }
       .caleb-peek.right {
-        right: -30px;
-        transform: scaleX(-1) rotate(6deg);
+        right: 0;
+        top: var(--at);
+        transform: translate(85%, -50%) rotate(-90deg);
       }
-      .caleb-peek.visible {
-        bottom: -30px;
+      .caleb-peek.right.visible {
+        transform: translate(30%, -50%) rotate(-90deg);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .caleb-peek { transition: none; }
       }
     </style>
   </head>
@@ -1848,13 +1869,17 @@
           attributionEl.appendChild(gnMathLink);
 
           var calebSrc = "data:image/webp;base64," + CALEB_B64;
-          ["left", "right"].forEach(function(side) {
+          [
+            ["left", "30%"], ["right", "44%"], ["bottom", "30%"],
+            ["left", "68%"], ["right", "80%"], ["bottom", "70%"]
+          ].forEach(function(spot, index) {
             var img = document.createElementNS(htmlNS, "img");
-            img.className = "caleb-peek " + side;
+            img.className = "caleb-peek " + spot[0];
+            img.style.setProperty("--at", spot[1]);
             img.setAttribute("alt", "");
             img.setAttribute("src", calebSrc);
             document.body.appendChild(img);
-            setTimeout(function() { img.classList.add("visible"); }, 3000);
+            setTimeout(function() { img.classList.add("visible"); }, 1500 + index * 350);
           });
 
           container.innerHTML = "";
