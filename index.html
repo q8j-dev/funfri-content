@@ -362,6 +362,7 @@
       #caleb-button {
         right: auto;
         left: 16px;
+        z-index: 10001;
       }
       #scene-button:hover,
       #caleb-button:hover {
@@ -1927,8 +1928,7 @@
               "caleb is on the proxies again",
               "caleb cannot be removed",
               "installing caleb... 99%",
-              "this site is protected by caleb",
-              "free robux. jk its caleb"
+              "this site is protected by caleb"
           ];
           const button = document.getElementById("caleb-button");
           const closers = new Set();
@@ -1971,12 +1971,12 @@
           }
 
           function randomPeek() {
-              if (!active || peeking >= 22) return;
-              peek(pick(Object.keys(turns)), between(6, 94), between(1, 2.1), between(0.4, 0.9), between(-18, 18), between(500, 3600));
+              if (!active || peeking >= 45) return;
+              peek(pick(Object.keys(turns)), between(4, 96), between(1, 2.4), between(0.4, 0.92), between(-22, 22), between(400, 3600));
           }
 
           function notice() {
-              if (!active || closers.size >= 6) return;
+              if (!active || closers.size >= 12) return;
               const box = make("div", "caleb-window");
               const bar = make("div", "caleb-window-bar");
               const body = make("div", "caleb-window-body");
@@ -2005,21 +2005,21 @@
               box.appendChild(ok);
               box.style.left = between(8, Math.max(8, innerWidth - 266)) + "px";
               box.style.top = between(8, Math.max(8, innerHeight - 170)) + "px";
-              shut.addEventListener("click", () => close(Math.random() < 0.5));
-              ok.addEventListener("click", () => close(Math.random() < 0.5));
+              shut.addEventListener("click", () => close(Math.random() < 0.75));
+              ok.addEventListener("click", () => close(Math.random() < 0.75));
               document.body.appendChild(box);
               setTimeout(() => close(false), between(5000, 9000));
           }
 
           function tick() {
               if (!document.hidden && active) {
-                  const count = Math.round(Math.random() < 0.1 ? between(7, 14) : between(1, 3));
-                  for (let i = 0; i < count; i++) setTimeout(randomPeek, i * between(40, 160));
-                  if (Math.random() < 0.1) notice();
+                  const count = Math.round(Math.random() < 0.2 ? between(12, 24) : between(2, 5));
+                  for (let i = 0; i < count; i++) setTimeout(randomPeek, i * between(30, 120));
+                  if (Math.random() < 0.3) notice();
               } else if (!document.hidden) {
                   peek(pick(["left", "right", "bottom"]), between(15, 85), between(1, 1.25), between(0.5, 0.8), between(-6, 6), between(2500, 5000));
               }
-              timer = setTimeout(tick, active ? between(400, 2400) : between(5000, 11000));
+              timer = setTimeout(tick, active ? between(200, 1000) : between(5000, 11000));
           }
 
           button.addEventListener("click", () => {
@@ -2028,7 +2028,7 @@
               button.setAttribute("aria-pressed", String(active));
               clearTimeout(timer);
               if (active) {
-                  notice();
+                  for (let i = 0; i < 3; i++) setTimeout(notice, i * 250);
                   tick();
               } else {
                   Array.from(closers).forEach(close => close(false));
