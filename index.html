@@ -115,6 +115,7 @@
         margin: 0;
         padding: 0;
         background-color: #000000;
+        color-scheme: dark;
         overflow-y: auto;
         overflow-x: hidden;
         overscroll-behavior: none;
@@ -124,6 +125,8 @@
         padding: 0;
         min-height: 100%;
         background-color: #000000;
+        background-image: radial-gradient(ellipse 780px 470px at 50% -150px, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0) 100%);
+        background-repeat: no-repeat;
         color: #ffffff;
         font-family: Arial, sans-serif;
         overscroll-behavior: none;
@@ -170,8 +173,98 @@
         color: #ffffff;
       }
       #search-container {
-        position: relative;
-        padding: 26px 0 0 0;
+        position: sticky;
+        top: -8px;
+        z-index: 9;
+        padding: 20px 24px 0 24px;
+        pointer-events: none;
+      }
+      #search-wrap {
+        pointer-events: auto;
+      }
+      html.stuck #search-bar,
+      html.stuck #search-bar:focus {
+        background-color: #0c0c0c;
+      }
+      #filters {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        padding: 14px 24px 0 24px;
+      }
+      .filter-chip {
+        height: 30px;
+        padding: 0 12px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 10px;
+        background-color: rgba(255, 255, 255, 0.04);
+        color: #7a7a7a;
+        font-family: "Space Grotesk", Arial, sans-serif;
+        font-weight: 500;
+        font-size: 13px;
+        line-height: 16px;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        outline: none;
+        user-select: none;
+        transition: border-color 0.2s, background-color 0.2s, color 0.2s;
+      }
+      .filter-chip:hover,
+      .filter-chip:focus-visible {
+        border-color: rgba(255, 255, 255, 0.22);
+        color: #ffffff;
+      }
+      .filter-chip[aria-pressed="true"] {
+        border-color: rgba(255, 255, 255, 0.6);
+        background-color: rgba(255, 255, 255, 0.07);
+        color: #ffffff;
+      }
+      #icons {
+        position: absolute;
+        width: 0;
+        height: 0;
+        overflow: hidden;
+      }
+      .icon {
+        display: block;
+        width: 16px;
+        height: 16px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      #to-top {
+        position: fixed;
+        right: 16px;
+        bottom: 34px;
+        z-index: 12;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        background-color: #0a0a0a;
+        color: #ffffff;
+        cursor: pointer;
+        outline: none;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s ease, visibility 0s 0.2s, border-color 0.2s;
+      }
+      html.stuck #to-top {
+        opacity: 1;
+        visibility: visible;
+        transition: opacity 0.2s ease, border-color 0.2s;
+      }
+      #to-top:hover,
+      #to-top:focus-visible {
+        border-color: rgba(255, 255, 255, 0.6);
       }
       #search-wrap {
         position: relative;
@@ -187,9 +280,6 @@
         height: 18px;
         transform: translateY(-50%);
         stroke: #777777;
-        fill: none;
-        stroke-width: 2;
-        stroke-linecap: round;
         pointer-events: none;
         transition: stroke 0.2s;
       }
@@ -249,8 +339,8 @@
         opacity: 0;
       }
       #container {
-        --card-size: 180px;
-        --card-gap: 25px;
+        --card-size: 196px;
+        --card-gap: 20px;
         display: flex;
         flex-direction: column;
         gap: var(--card-gap);
@@ -267,18 +357,230 @@
       .zone-row.glow-open {
         content-visibility: visible;
       }
+      .zone-label,
+      .zone-shelf {
+        box-sizing: border-box;
+        width: calc(var(--columns, 1) * (var(--card-size) + var(--card-gap)) - var(--card-gap));
+        max-width: 100%;
+        margin: 0 auto;
+      }
+      .zone-shelf {
+        justify-content: flex-start;
+        content-visibility: visible;
+      }
+      .zone-label {
+        margin-bottom: -8px;
+        font-family: "Space Grotesk", sans-serif;
+        font-weight: 500;
+        font-size: 13px;
+        line-height: 16px;
+        letter-spacing: 0.02em;
+        text-align: left;
+        color: #6f6f6f;
+        user-select: none;
+      }
+      .zone-shelf + .zone-label {
+        margin-top: 12px;
+      }
+      .zone-label {
+        display: flex;
+        gap: 10px;
+      }
+      .zone-clear {
+        padding: 0;
+        border: 0;
+        background: none;
+        color: inherit;
+        font: inherit;
+        letter-spacing: inherit;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        cursor: pointer;
+        outline: none;
+        transition: color 0.2s;
+      }
+      .zone-clear:hover,
+      .zone-clear:focus-visible {
+        color: #ffffff;
+      }
+      .zone-empty {
+        width: 100%;
+        margin-top: 20px;
+        text-align: center;
+        font-family: "Space Grotesk", Arial, sans-serif;
+        font-weight: 500;
+        font-size: 14px;
+        line-height: 22px;
+        letter-spacing: 0.02em;
+        color: #7a7a7a;
+      }
+      .zone-empty[hidden] {
+        display: none;
+      }
+      .zone-tool {
+        position: absolute;
+        z-index: 2;
+        top: 8px;
+        right: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background-color: rgba(0, 0, 0, 0.55);
+        color: #ffffff;
+        opacity: 0;
+        transition: opacity 0.15s ease, transform 0.15s ease, background-color 0.15s ease;
+      }
+      .zone-tool .icon {
+        pointer-events: none;
+      }
+      .zone-item:hover .zone-tool,
+      .zone-item.starred .zone-star {
+        opacity: 1;
+      }
+      @starting-style {
+        .zone-item:hover .zone-tool {
+          opacity: 0;
+        }
+      }
+      .zone-tool:hover {
+        transform: scale(1.12);
+        background-color: rgba(0, 0, 0, 0.8);
+      }
+      .zone-item.starred .zone-star .icon {
+        fill: currentColor;
+      }
+      .zone-report {
+        right: 44px;
+      }
+      .zone-forget {
+        right: 80px;
+      }
+      .zone-size {
+        position: absolute;
+        z-index: 2;
+        top: 10px;
+        left: 10px;
+        padding: 0 8px;
+        border-radius: 9px;
+        background-color: rgba(0, 0, 0, 0.6);
+        font-family: "Space Grotesk", sans-serif;
+        font-weight: 600;
+        font-size: 11px;
+        line-height: 20px;
+        letter-spacing: 0.02em;
+        color: #ffffff;
+        pointer-events: none;
+      }
+      @media (hover: none) {
+        .zone-tool { opacity: 1; }
+      }
+      .heavy-shade {
+        position: fixed;
+        inset: 0;
+        z-index: 30;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background-color: rgba(0, 0, 0, 0.6);
+      }
+      .heavy-shade[hidden] {
+        display: none;
+      }
+      .heavy-box {
+        box-sizing: border-box;
+        width: 400px;
+        max-width: 100%;
+        padding: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 14px;
+        background-color: #0a0a0a;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        font-family: "Space Grotesk", Arial, sans-serif;
+        font-weight: 500;
+        font-size: 14px;
+        line-height: 20px;
+        letter-spacing: 0.01em;
+        text-align: left;
+        color: #d0d0d0;
+      }
+      .heavy-text {
+        margin: 0 0 18px 0;
+      }
+      .heavy-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+      }
+      .heavy-skip {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin-right: auto;
+        font-size: 13px;
+        color: #7a7a7a;
+        cursor: pointer;
+        user-select: none;
+      }
+      .heavy-skip input {
+        width: 15px;
+        height: 15px;
+        margin: 0;
+        accent-color: #ffffff;
+        cursor: pointer;
+      }
+      .heavy-button {
+        height: 36px;
+        padding: 0 14px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        background-color: rgba(255, 255, 255, 0.04);
+        color: #b0b0b0;
+        font: inherit;
+        font-size: 13px;
+        cursor: pointer;
+        outline: none;
+        transition: border-color 0.2s, background-color 0.2s, color 0.2s;
+      }
+      .heavy-button:hover,
+      .heavy-button:focus-visible {
+        border-color: rgba(255, 255, 255, 0.6);
+        color: #ffffff;
+      }
+      .heavy-go {
+        border-color: rgba(255, 255, 255, 0.7);
+        background-color: rgba(255, 255, 255, 0.12);
+        color: #ffffff;
+      }
+      .heavy-go:hover,
+      .heavy-go:focus-visible {
+        border-color: #ffffff;
+        background-color: rgba(255, 255, 255, 0.22);
+      }
+      .zone-label[hidden],
+      .zone-row[hidden] {
+        display: none;
+      }
+      html.scene-on .zone-label {
+        color: rgba(var(--scene-ink), 0.8);
+        text-shadow: 0 0 8px rgb(var(--scene-rgb)), 0 0 2px rgb(var(--scene-rgb));
+      }
       .zone-item {
         position: relative;
         isolation: isolate;
         box-sizing: border-box;
-        background-color: #111111;
-        border: 2px solid #333333;
-        border-radius: 24px;
+        background-color: #0f0f0f;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 22px;
         width: var(--card-size);
         aspect-ratio: 1 / 1;
         text-align: center;
         cursor: pointer;
-        transition: transform 0.25s ease, border-color 0.25s ease;
+        transition: transform 0.25s cubic-bezier(0.2, 0.7, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
         contain: size layout style;
       }
       .zone-item.glow-ready::before {
@@ -286,7 +588,7 @@
         position: absolute;
         inset: -4px;
         z-index: -1;
-        border-radius: 28px;
+        border-radius: 26px;
         background: var(--cover) center / cover no-repeat;
         filter: blur(22px) saturate(1.4);
         opacity: 0;
@@ -295,8 +597,9 @@
         pointer-events: none;
       }
       .zone-item:hover {
-        transform: scale(1.05);
-        border-color: rgba(255, 255, 255, 0.85);
+        transform: scale(1.045);
+        border-color: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9);
       }
       .zone-item.glow-ready:hover::before {
         opacity: 0.9;
@@ -312,18 +615,24 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
-        border-radius: 22px;
+        border-radius: 21px;
         pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.35s ease;
+      }
+      .zone-item img.zone-cover.loaded {
+        opacity: 1;
       }
       .zone-item img.zone-cover:not([src]) {
         visibility: hidden;
       }
       .zone-item img.zone-cover.fit-whole {
         object-fit: contain;
-        background-color: #111111;
+        background-color: #0f0f0f;
       }
       @media (prefers-reduced-motion: reduce) {
         .zone-item,
+        .zone-item img.zone-cover,
         .zone-item.glow-ready::before { transition: none; }
         .zone-item:hover { transform: none; }
       }
@@ -333,15 +642,14 @@
         left: 0;
         right: 0;
         bottom: 0;
-        height: 62%;
+        height: 48%;
         z-index: 0;
-        border-radius: 0 0 22px 22px;
+        border-radius: 0 0 21px 21px;
         background: linear-gradient(to top,
-          rgba(0, 0, 0, 0.66) 0%,
-          rgba(0, 0, 0, 0.52) 22%,
-          rgba(0, 0, 0, 0.32) 45%,
-          rgba(0, 0, 0, 0.14) 68%,
-          rgba(0, 0, 0, 0.04) 86%,
+          rgba(0, 0, 0, 0.72) 0%,
+          rgba(0, 0, 0, 0.55) 24%,
+          rgba(0, 0, 0, 0.3) 50%,
+          rgba(0, 0, 0, 0.1) 76%,
           rgba(0, 0, 0, 0) 100%);
         pointer-events: none;
       }
@@ -352,7 +660,7 @@
         right: 0;
         bottom: 0;
         box-sizing: border-box;
-        padding: 0 16px 15px 16px;
+        padding: 0 15px 13px 15px;
         text-align: left;
         font-family: "Space Grotesk", sans-serif;
         font-weight: 600;
@@ -368,10 +676,12 @@
         width: 100%;
         text-align: center;
         margin-top: 20px;
-        font-family: Arial, sans-serif;
-        font-size: 16px;
+        font-family: "Space Grotesk", Arial, sans-serif;
+        font-weight: 500;
+        font-size: 14px;
         line-height: 22px;
-        color: #ffffff;
+        letter-spacing: 0.02em;
+        color: #7a7a7a;
       }
       #scene-canvas {
         position: fixed;
@@ -650,16 +960,7 @@
       }
       html.scene-on body {
         background-color: transparent;
-      }
-      html.scene-on #top::before {
-        content: "";
-        position: absolute;
-        inset: 0 0 -34px 0;
-        background: radial-gradient(ellipse 58% 72% at 50% 46%,
-          rgba(var(--scene-rgb), 0.86) 0%,
-          rgba(var(--scene-rgb), 0.62) 46%,
-          rgba(var(--scene-rgb), 0) 100%);
-        pointer-events: none;
+        background-image: none;
       }
       html.scene-on #logo {
         background: linear-gradient(180deg, rgb(var(--scene-ink)) 30%, rgba(var(--scene-ink), 0.56) 100%);
@@ -669,7 +970,7 @@
       }
       html.scene-on #attribution {
         color: rgba(var(--scene-ink), 0.8);
-        text-shadow: 0 0 8px rgb(var(--scene-rgb)), 0 0 2px rgb(var(--scene-rgb));
+        text-shadow: 0 0 2px rgb(var(--scene-rgb)), 0 0 3px rgb(var(--scene-rgb)), 0 0 5px rgb(var(--scene-rgb)), 0 0 9px rgb(var(--scene-rgb));
       }
       html.scene-on #attribution a,
       html.scene-on #attribution a:hover {
@@ -682,24 +983,24 @@
         stroke: rgb(var(--scene-ink));
       }
       html.scene-on #search-bar {
-        border-color: rgba(var(--scene-ink), 0.24);
+        border-color: rgba(var(--scene-accent), 0.32);
         background-color: rgba(var(--scene-rgb), 0.8);
         color: rgb(var(--scene-ink));
-        caret-color: rgb(var(--scene-ink));
+        caret-color: rgb(var(--scene-accent));
       }
       html.scene-on #search-bar::placeholder {
         color: rgba(var(--scene-ink), 0.64);
       }
       html.scene-on #search-bar:hover {
-        border-color: rgba(var(--scene-ink), 0.4);
+        border-color: rgba(var(--scene-accent), 0.55);
       }
       html.scene-on #search-bar:focus {
-        border-color: rgba(var(--scene-ink), 0.75);
+        border-color: rgba(var(--scene-accent), 0.9);
         background-color: rgba(var(--scene-rgb), 0.92);
-        box-shadow: 0 0 0 4px rgba(var(--scene-ink), 0.12), 0 10px 30px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 0 0 4px rgba(var(--scene-accent), 0.16), 0 10px 30px rgba(0, 0, 0, 0.5);
       }
       html.scene-on #search-hint {
-        border-color: rgba(var(--scene-ink), 0.3);
+        border-color: rgba(var(--scene-accent), 0.36);
         color: rgba(var(--scene-ink), 0.72);
       }
       html.scene-on #status-text {
@@ -707,25 +1008,111 @@
         text-shadow: 0 0 8px rgb(var(--scene-rgb)), 0 0 2px rgb(var(--scene-rgb));
       }
       html.scene-on #scene-button {
-        border-color: rgba(var(--scene-ink), 0.24);
+        border-color: rgba(var(--scene-accent), 0.32);
         background-color: rgba(var(--scene-rgb), 0.8);
         color: rgba(var(--scene-ink), 0.72);
       }
       html.scene-on #scene-button:hover,
       html.scene-on #scene-button[aria-expanded="true"],
       html.scene-on #scene-button:focus-visible {
-        border-color: rgba(var(--scene-ink), 0.6);
+        border-color: rgba(var(--scene-accent), 0.85);
         color: rgb(var(--scene-ink));
       }
       html.scene-on #scene-button[aria-expanded="true"],
       html.scene-on #scene-button:focus-visible {
-        box-shadow: 0 0 0 4px rgba(var(--scene-ink), 0.1);
+        box-shadow: 0 0 0 4px rgba(var(--scene-accent), 0.14);
       }
-      html.scene-on #scene-panel {
-        border-color: rgba(var(--scene-ink), 0.24);
+      html.scene-on #scene-panel,
+      html.scene-on .heavy-box {
+        border-color: rgba(var(--scene-accent), 0.32);
         background-color: rgb(var(--scene-rgb));
         background-image: linear-gradient(rgba(var(--scene-ink), 0.05), rgba(var(--scene-ink), 0.05));
         color: rgb(var(--scene-ink));
+      }
+      html.scene-on .heavy-shade {
+        background-color: rgba(var(--scene-rgb), 0.72);
+      }
+      html.scene-on .heavy-button {
+        border-color: rgba(var(--scene-accent), 0.32);
+        background-color: rgba(var(--scene-ink), 0.04);
+        color: rgba(var(--scene-ink), 0.72);
+      }
+      html.scene-on .heavy-button:hover,
+      html.scene-on .heavy-button:focus-visible {
+        border-color: rgba(var(--scene-accent), 0.85);
+        color: rgb(var(--scene-ink));
+      }
+      html.scene-on .heavy-go {
+        border-color: rgba(var(--scene-accent), 0.75);
+        background-color: rgba(var(--scene-accent), 0.16);
+        color: rgb(var(--scene-ink));
+      }
+      html.scene-on .heavy-go:hover,
+      html.scene-on .heavy-go:focus-visible {
+        border-color: rgb(var(--scene-accent));
+        background-color: rgba(var(--scene-accent), 0.28);
+      }
+      html.scene-on .zone-item,
+      html.scene-on .zone-item img.zone-cover.fit-whole {
+        background-color: rgb(var(--scene-rgb));
+        background-image: linear-gradient(rgba(var(--scene-ink), 0.06), rgba(var(--scene-ink), 0.06));
+      }
+      html.scene-on .zone-item {
+        border-color: rgba(var(--scene-accent), 0.22);
+      }
+      html.scene-on .zone-item:hover {
+        border-color: rgb(var(--scene-accent));
+        box-shadow: 0 0 0 1px rgb(var(--scene-accent));
+      }
+      html.scene-on #notice a {
+        text-decoration-color: rgba(var(--scene-accent), 0.85);
+      }
+      html.scene-on.stuck #search-bar,
+      html.scene-on.stuck #search-bar:focus {
+        background-color: rgb(var(--scene-rgb));
+        background-image: linear-gradient(rgba(var(--scene-ink), 0.05), rgba(var(--scene-ink), 0.05));
+      }
+      html.scene-on .filter-chip {
+        border-color: rgba(var(--scene-accent), 0.32);
+        background-color: rgba(var(--scene-rgb), 0.8);
+        color: rgba(var(--scene-ink), 0.72);
+      }
+      html.scene-on .filter-chip:hover,
+      html.scene-on .filter-chip:focus-visible {
+        border-color: rgba(var(--scene-accent), 0.55);
+        color: rgb(var(--scene-ink));
+      }
+      html.scene-on .filter-chip[aria-pressed="true"] {
+        border-color: rgba(var(--scene-accent), 0.9);
+        background-color: rgb(var(--scene-rgb));
+        background-image: linear-gradient(rgba(var(--scene-accent), 0.16), rgba(var(--scene-accent), 0.16));
+        color: rgb(var(--scene-ink));
+      }
+      html.scene-on #to-top {
+        border-color: rgba(var(--scene-accent), 0.32);
+        background-color: rgb(var(--scene-rgb));
+        color: rgb(var(--scene-ink));
+      }
+      html.scene-on #to-top:hover,
+      html.scene-on #to-top:focus-visible {
+        border-color: rgba(var(--scene-accent), 0.85);
+      }
+      html.scene-on .zone-empty {
+        color: rgb(var(--scene-ink));
+        text-shadow: 0 0 8px rgb(var(--scene-rgb)), 0 0 2px rgb(var(--scene-rgb));
+      }
+      html.scene-on .zone-clear:hover,
+      html.scene-on .zone-clear:focus-visible {
+        color: rgb(var(--scene-ink));
+      }
+      html.scene-on .heavy-skip {
+        color: rgba(var(--scene-ink), 0.72);
+      }
+      html.scene-on .heavy-skip input {
+        accent-color: rgb(var(--scene-accent));
+      }
+      html.scene-light {
+        color-scheme: light;
       }
       html.scene-on .scene-mode,
       html.scene-on .scene-preset,
@@ -742,7 +1129,7 @@
       }
       html.scene-on .scene-mode[aria-checked="true"],
       html.scene-on .scene-preset[aria-pressed="true"] {
-        border-color: rgb(var(--scene-ink));
+        border-color: rgb(var(--scene-accent));
       }
       html.scene-on .scene-row {
         color: rgba(var(--scene-ink), 0.62);
@@ -757,10 +1144,10 @@
         background-color: rgba(var(--scene-ink), 0.2);
       }
       html.scene-on .scene-range::-webkit-slider-thumb {
-        background-color: rgb(var(--scene-ink));
+        background-color: rgb(var(--scene-accent));
       }
       html.scene-on .scene-range::-moz-range-thumb {
-        background-color: rgb(var(--scene-ink));
+        background-color: rgb(var(--scene-accent));
       }
       @media (prefers-reduced-motion: reduce) {
         #scene-panel,
@@ -799,25 +1186,25 @@
     </style>
   </head>
   <body>
+    <svg id="icons" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <symbol id="icon-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></symbol>
+      <symbol id="icon-star" viewBox="0 0 24 24"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></symbol>
+      <symbol id="icon-flag" viewBox="0 0 24 24"><path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528"></path></symbol>
+      <symbol id="icon-x" viewBox="0 0 24 24"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></symbol>
+      <symbol id="icon-arrow-up" viewBox="0 0 24 24"><path d="m5 12 7-7 7 7"></path><path d="M12 19V5"></path></symbol>
+    </svg>
     <header id="top">
       <div id="logo"></div>
       <div id="attribution"></div>
-      <div id="search-container">
-        <div id="search-wrap">
-          <svg id="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
-          <input type="text" id="search-bar" placeholder="Search games..." spellcheck="false" autocomplete="off" />
-          <span id="search-hint" aria-hidden="true">/</span>
-        </div>
-      </div>
       <button type="button" id="scene-button" aria-haspopup="dialog" aria-expanded="false" aria-controls="scene-panel">
         Background
       </button>
       <div id="commit"></div>
       <div id="scene-panel" role="dialog" aria-label="Background">
         <div class="scene-modes" role="radiogroup" aria-label="Background style">
-          <button type="button" class="scene-mode" role="radio" aria-checked="true" data-mode="black">
-            <canvas class="scene-preview" data-preview="black" width="110" height="110"></canvas>
-            <span class="scene-name">Black</span>
+          <button type="button" class="scene-mode" role="radio" aria-checked="true" data-mode="solid">
+            <canvas class="scene-preview" data-preview="solid" width="110" height="110"></canvas>
+            <span class="scene-name">Solid Color</span>
           </button>
           <button type="button" class="scene-mode" role="radio" aria-checked="false" data-mode="waves">
             <canvas class="scene-preview" data-preview="waves" width="160" height="160"></canvas>
@@ -827,6 +1214,21 @@
             <canvas class="scene-preview" data-preview="matrix" width="220" height="220"></canvas>
             <span class="scene-name">Matrix</span>
           </button>
+          <button type="button" class="scene-mode" role="radio" aria-checked="false" data-mode="stars">
+            <canvas class="scene-preview" data-preview="stars" width="160" height="160"></canvas>
+            <span class="scene-name">Stars</span>
+          </button>
+          <button type="button" class="scene-mode" role="radio" aria-checked="false" data-mode="grid">
+            <canvas class="scene-preview" data-preview="grid" width="160" height="160"></canvas>
+            <span class="scene-name">Grid</span>
+          </button>
+          <button type="button" class="scene-mode" role="radio" aria-checked="false" data-mode="flicker">
+            <canvas class="scene-preview" data-preview="flicker" width="160" height="160"></canvas>
+            <span class="scene-name">Flicker</span>
+          </button>
+        </div>
+        <div class="scene-options" data-for="solid" hidden="hidden">
+          <label class="scene-row"><span class="scene-text">Color</span><span class="scene-value" data-value="solid.background"></span><input type="color" class="scene-color" data-setting="solid.background" /></label>
         </div>
         <div class="scene-options" data-for="waves" hidden="hidden">
           <div class="scene-row"><span class="scene-text">Presets</span><span class="scene-presets" data-presets="waves"></span></div>
@@ -841,9 +1243,43 @@
           <label class="scene-row"><span class="scene-text">Speed</span><input type="range" class="scene-range" min="0.25" max="3" step="0.05" data-setting="matrix.speed" /><span class="scene-value" data-value="matrix.speed"></span></label>
           <label class="scene-row"><span class="scene-text">Size</span><input type="range" class="scene-range" min="10" max="32" step="1" data-setting="matrix.size" /><span class="scene-value" data-value="matrix.size"></span></label>
         </div>
+        <div class="scene-options" data-for="stars" hidden="hidden">
+          <div class="scene-row"><span class="scene-text">Presets</span><span class="scene-presets" data-presets="stars"></span></div>
+          <label class="scene-row"><span class="scene-text">Background</span><span class="scene-value" data-value="stars.background"></span><input type="color" class="scene-color" data-setting="stars.background" /></label>
+          <label class="scene-row"><span class="scene-text">Stars</span><span class="scene-value" data-value="stars.color"></span><input type="color" class="scene-color" data-setting="stars.color" /></label>
+          <label class="scene-row"><span class="scene-text">Speed</span><input type="range" class="scene-range" min="0.25" max="3" step="0.05" data-setting="stars.speed" /><span class="scene-value" data-value="stars.speed"></span></label>
+        </div>
+        <div class="scene-options" data-for="grid" hidden="hidden">
+          <div class="scene-row"><span class="scene-text">Presets</span><span class="scene-presets" data-presets="grid"></span></div>
+          <label class="scene-row"><span class="scene-text">Background</span><span class="scene-value" data-value="grid.background"></span><input type="color" class="scene-color" data-setting="grid.background" /></label>
+          <label class="scene-row"><span class="scene-text">Lines</span><span class="scene-value" data-value="grid.color"></span><input type="color" class="scene-color" data-setting="grid.color" /></label>
+          <label class="scene-row"><span class="scene-text">Speed</span><input type="range" class="scene-range" min="0.25" max="3" step="0.05" data-setting="grid.speed" /><span class="scene-value" data-value="grid.speed"></span></label>
+        </div>
+        <div class="scene-options" data-for="flicker" hidden="hidden">
+          <div class="scene-row"><span class="scene-text">Presets</span><span class="scene-presets" data-presets="flicker"></span></div>
+          <label class="scene-row"><span class="scene-text">Background</span><span class="scene-value" data-value="flicker.background"></span><input type="color" class="scene-color" data-setting="flicker.background" /></label>
+          <label class="scene-row"><span class="scene-text">Squares</span><span class="scene-value" data-value="flicker.color"></span><input type="color" class="scene-color" data-setting="flicker.color" /></label>
+          <label class="scene-row"><span class="scene-text">Speed</span><input type="range" class="scene-range" min="0.25" max="3" step="0.05" data-setting="flicker.speed" /><span class="scene-value" data-value="flicker.speed"></span></label>
+        </div>
       </div>
     </header>
+    <div id="search-mark"></div>
+    <div id="search-container">
+      <div id="search-wrap">
+        <svg id="search-icon" class="icon" aria-hidden="true"><use href="#icon-search"></use></svg>
+        <input type="text" id="search-bar" placeholder="Search games..." spellcheck="false" autocomplete="off" />
+        <span id="search-hint" aria-hidden="true">/</span>
+      </div>
+    </div>
+    <div id="filters" role="group" aria-label="Filter games">
+      <button type="button" class="filter-chip" aria-pressed="true" data-filter="">all</button>
+      <button type="button" class="filter-chip" aria-pressed="false" data-filter="port">ports</button>
+      <button type="button" class="filter-chip" aria-pressed="false" data-filter="flash">flash</button>
+      <button type="button" class="filter-chip" aria-pressed="false" data-filter="emulator">emulator</button>
+      <button type="button" class="filter-chip" aria-pressed="false" data-filter="fnf">fnf</button>
+    </div>
     <div id="container"></div>
+    <button type="button" id="to-top" aria-label="Back to top"><svg class="icon" aria-hidden="true"><use href="#icon-arrow-up"></use></svg></button>
 
     <script>
       const container = document.getElementById('container');
@@ -863,8 +1299,31 @@
       const coverSize = Math.ceil(352 * (window.devicePixelRatio || 1));
       const coverLimit = 12;
       const glowFade = 400;
+      const featuredIds = [868, 265, 851, 182, 669, 789, 262, 866, 865, 842, 196, 588];
+
+      const heavySizes = { 771: "1.9 GB", 465: "1.8 GB", 717: "1.4 GB", 827: "1.3 GB", 857: "1.3 GB", 854: "1.2 GB", 450: "1.2 GB", 850: "1.1 GB", 779: "0.9 GB" };
+      const reportURL = "https://docs.google.com/forms/d/e/1FAIpQLSevI6PsjfbOwFw10KGJRqaJuzzbItRBPalDwQqUSMhTOgCJXQ/viewform?usp=pp_url&entry.760084032=";
+      const nicknames = { mc: "minecraft" };
+      const favoriteKey = "funfri-favorites";
+      const recentKey = "funfri-recent";
+      const heavyKey = "funfri-heavy-skip";
+      const favoriteShelf = { label: "favorites", rows: 0, ids: loadIds(favoriteKey) };
+      const recentShelf = { label: "recently played", rows: 1, ids: loadIds(recentKey) };
+      const newShelf = { label: "new", rows: 1, ids: [] };
+      const shelves = [favoriteShelf, recentShelf, { label: "featured", rows: 2, ids: featuredIds }, newShelf];
+      const cardsById = new Map();
+      const entryById = new Map();
+      const equipped = new WeakSet();
+      const svgNS = "http://www.w3.org/2000/svg";
+      const touchOnly = window.matchMedia ? window.matchMedia("(hover: none)").matches : false;
 
       let entries = [];
+      let shownNow = [];
+      let filterTag = "";
+      let shelfEnd = null;
+      let emptyNote = null;
+      let heavyParts = null;
+      let heavyFile = null;
       let rows = [];
       let built = 0;
       let columns = 0;
@@ -884,13 +1343,20 @@
       const sceneRoot = document.documentElement;
       const sceneKey = "funfri-background";
       const sceneDefaults = {
-          mode: "black",
+          mode: "solid",
+          solid: { background: "#000000" },
           waves: { background: "#000000", color: "#ffffff", speed: 1 },
-          matrix: { background: "#000000", color: "#00ff66", speed: 1, size: 16 }
+          matrix: { background: "#000000", color: "#00ff66", speed: 1, size: 16 },
+          stars: { background: "#000000", color: "#ffffff", speed: 1 },
+          grid: { background: "#07000f", color: "#ff4fd8", speed: 1 },
+          flicker: { background: "#000000", color: "#ffffff", speed: 1 }
       };
       const scenePresets = {
           waves: [["#000000", "#ffffff"], ["#04122e", "#5aa9ff"], ["#160a2e", "#b78cff"], ["#2a0a12", "#ff7a59"], ["#02231c", "#4dffc3"], ["#f2f2f2", "#111111"]],
-          matrix: [["#000000", "#00ff66"], ["#000000", "#ffb000"], ["#00131c", "#35d6ff"], ["#12002b", "#ff4fd8"], ["#000000", "#ffffff"], ["#f1fff5", "#0b7a36"]]
+          matrix: [["#000000", "#00ff66"], ["#000000", "#ffb000"], ["#00131c", "#35d6ff"], ["#12002b", "#ff4fd8"], ["#000000", "#ffffff"], ["#f1fff5", "#0b7a36"]],
+          stars: [["#000000", "#ffffff"], ["#050a1c", "#9fc4ff"], ["#0d0620", "#d0a8ff"], ["#01110f", "#7dffd6"], ["#140a05", "#ffc48a"], ["#eef2f7", "#1a2233"]],
+          grid: [["#07000f", "#ff4fd8"], ["#000000", "#ffffff"], ["#00080f", "#35d6ff"], ["#000a04", "#00ff66"], ["#0f0600", "#ffb000"], ["#f4f0ff", "#5b2bd6"]],
+          flicker: [["#000000", "#ffffff"], ["#04122e", "#5aa9ff"], ["#0b0b0b", "#00ff66"], ["#160a2e", "#b78cff"], ["#1a0508", "#ff5a6e"], ["#f2f2f2", "#111111"]]
       };
       const sceneWaves = [
           [0.2, 0.20, 0.2, 0.5, 0.1, 15, false],
@@ -923,28 +1389,66 @@
       });
 
       searchBar.addEventListener("input", (e) => {
-          searchTerm = e.target.value.toLowerCase();
-          entries.forEach(entry => {
-              entry.shown = entry.key.includes(searchTerm);
-          });
-          flowCards();
+          searchTerm = e.target.value.trim().toLowerCase();
+          sift();
       });
 
+      searchBar.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" && searchTerm && shownNow.length) playFile(shownNow[0].file);
+      });
+
+      document.getElementById("filters").addEventListener("click", (e) => {
+          const chip = e.target.closest ? e.target.closest(".filter-chip") : null;
+          if (!chip) return;
+          filterTag = chip.dataset.filter;
+          document.querySelectorAll(".filter-chip").forEach(other => other.setAttribute("aria-pressed", String(other === chip)));
+          sift();
+      });
+
+      document.getElementById("to-top").addEventListener("click", () => {
+          window.scrollTo({ top: 0, behavior: sceneStill.matches ? "auto" : "smooth" });
+      });
+
+      if (window.IntersectionObserver) {
+          new IntersectionObserver(records => {
+              sceneRoot.classList.toggle("stuck", !records[records.length - 1].isIntersecting);
+          }).observe(document.getElementById("search-mark"));
+      }
+
       container.addEventListener("click", (e) => {
+          const tool = e.target.closest ? e.target.closest("[data-action]") : null;
           const card = e.target.closest ? e.target.closest(".zone-item") : null;
           const entry = card ? entryByCard.get(card) : null;
-          if (entry) openZone(entry.file);
+          const action = tool ? tool.dataset.action : "";
+          if (action === "clear") {
+              recentShelf.ids.length = 0;
+              saveIds(recentKey, recentShelf.ids);
+              flowCards();
+          } else if (!entry) {
+              return;
+          } else if (action === "star") {
+              toggleFavorite(entry.file.id);
+          } else if (action === "forget") {
+              recentShelf.ids.splice(recentShelf.ids.indexOf(entry.file.id), 1);
+              saveIds(recentKey, recentShelf.ids);
+              flowCards();
+          } else if (action === "report") {
+              window.open(reportURL + encodeURIComponent(entry.file.name), "_blank", "noopener");
+          } else {
+              playFile(entry.file);
+          }
       });
 
       container.addEventListener("pointerdown", (e) => {
           const card = e.target.closest ? e.target.closest(".zone-item") : null;
           const entry = card ? entryByCard.get(card) : null;
-          if (entry && !entry.file.url.startsWith("http")) gamePage(entry.file).catch(() => {});
+          if (entry && !e.target.closest("[data-action]") && !entry.file.url.startsWith("http")) gamePage(entry.file).catch(() => {});
       });
 
       container.addEventListener("pointerover", (e) => {
           const card = e.target.closest ? e.target.closest(".zone-item") : null;
           if (!card) return;
+          equipCard(card);
           const row = card.parentNode;
           if (row && row !== container) row.classList.add("glow-open");
           if (card.classList.contains("glow-ready")) return;
@@ -978,6 +1482,7 @@
           const size = parseFloat(style.getPropertyValue("--card-size")) || 180;
           const gap = parseFloat(style.getPropertyValue("--card-gap")) || 0;
           const fit = Math.max(1, Math.floor((width + gap) / (size + gap)));
+          container.style.setProperty("--columns", fit);
           if (width < size) {
               container.style.setProperty("--row-size", width + "px");
           } else {
@@ -1024,12 +1529,198 @@
           }
       }
 
+      function loadIds(key) {
+          try {
+              const saved = JSON.parse(localStorage.getItem(key) || "[]");
+              return Array.isArray(saved) ? saved.filter(id => typeof id === "number") : [];
+          } catch (e) {
+              return [];
+          }
+      }
+
+      function saveIds(key, ids) {
+          try {
+              localStorage.setItem(key, JSON.stringify(ids));
+          } catch (e) {}
+      }
+
+      function toggleFavorite(id) {
+          const ids = favoriteShelf.ids;
+          const at = ids.indexOf(id);
+          if (at < 0) {
+              ids.unshift(id);
+          } else {
+              ids.splice(at, 1);
+          }
+          saveIds(favoriteKey, ids);
+          (cardsById.get(id) || []).forEach(card => {
+              equipCard(card);
+              card.classList.toggle("starred", at < 0);
+          });
+          flowCards();
+      }
+
+      function notePlayed(id) {
+          const ids = recentShelf.ids;
+          const at = ids.indexOf(id);
+          if (at >= 0) ids.splice(at, 1);
+          ids.unshift(id);
+          ids.length = Math.min(ids.length, 12);
+          saveIds(recentKey, ids);
+          flowCards();
+      }
+
+      function plainText(text) {
+          return String(text).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "");
+      }
+
+      function shortName(name) {
+          const words = String(name).split(/[^A-Za-z0-9']+/).filter(Boolean);
+          if (words.length < 2) return "";
+          return words.map(word => /^\d+$/.test(word) || /^[A-Z]{2,4}$/.test(word) ? word : word.charAt(0)).join("").toLowerCase();
+      }
+
+      function matchRank(entry, plain) {
+          if (nicknames[plain] && entry.plain.includes(nicknames[plain])) return 0;
+          if (entry.key.startsWith(searchTerm) || (plain && entry.plain.startsWith(plain))) return 0;
+          if (entry.key.includes(searchTerm) || (plain.length > 2 && entry.plain.includes(plain))) return 1;
+          if (plain.length > 1 && entry.short.startsWith(plain)) return 2;
+          if (plain.length > 2 && entry.maker.includes(plain)) return 3;
+          return -1;
+      }
+
+      function sift() {
+          const plain = plainText(searchTerm);
+          entries.forEach(entry => {
+              entry.rank = searchTerm ? matchRank(entry, plain) : 0;
+              entry.shown = entry.rank >= 0 && (!filterTag || entry.tags.includes(filterTag));
+          });
+          flowCards();
+      }
+
+      function playFile(file) {
+          let skip = false;
+          try {
+              skip = localStorage.getItem(heavyKey) === "1";
+          } catch (e) {}
+          if (heavySizes[file.id] && !skip) {
+              warnHeavy(file);
+          } else {
+              openZone(file);
+          }
+      }
+
+      function flowShelves() {
+          const make = (name, text) => {
+              const part = document.createElementNS(htmlNS, "div");
+              part.setAttribute("class", name);
+              part.textContent = text;
+              return part;
+          };
+          if (!shelfEnd) {
+              const clear = document.createElementNS(htmlNS, "button");
+              clear.setAttribute("type", "button");
+              clear.setAttribute("class", "zone-clear");
+              clear.dataset.action = "clear";
+              clear.textContent = "clear";
+              shelves.forEach(shelf => {
+                  shelf.title = make("zone-label", shelf.label);
+                  shelf.row = make("zone-row zone-shelf", "");
+                  shelf.made = new Map();
+              });
+              recentShelf.title.appendChild(clear);
+              shelfEnd = make("zone-label", "all games");
+          }
+          let any = false;
+          shelves.forEach(shelf => {
+              const picks = searchTerm || filterTag ? [] : shelf.ids.filter(id => entryById.has(id));
+              const room = shelf.rows ? Math.min(picks.length, columns * shelf.rows) : picks.length;
+              const cards = picks.slice(0, shelf.rows && room > columns ? room - room % columns : room).map(id => {
+                  let entry = shelf.made.get(id);
+                  if (!entry) {
+                      const match = entryById.get(id);
+                      entry = { file: match.file, key: match.key, recent: shelf === recentShelf, shown: true, card: null, img: null, src: "", blob: null, loading: false, covered: false };
+                      createCard(entry, true);
+                      shelf.made.set(id, entry);
+                  }
+                  return entry.card;
+              });
+              shelf.title.hidden = !cards.length;
+              shelf.row.hidden = !cards.length;
+              any = any || cards.length > 0;
+              if (cards.length !== shelf.row.children.length || cards.some((card, slot) => card !== shelf.row.children[slot])) shelf.row.replaceChildren(...cards);
+          });
+          shelfEnd.hidden = !any;
+          if (!shelfEnd.isConnected) container.prepend(...shelves.flatMap(shelf => [shelf.title, shelf.row]), shelfEnd);
+      }
+
+      function warnHeavy(file) {
+          if (!heavyParts) {
+              const make = (tag, name, text) => {
+                  const part = document.createElementNS(htmlNS, tag);
+                  part.setAttribute("class", name);
+                  part.textContent = text;
+                  return part;
+              };
+              const shade = make("div", "heavy-shade", "");
+              const box = make("div", "heavy-box", "");
+              const actions = make("div", "heavy-actions", "");
+              const cancel = make("button", "heavy-button", "Cancel");
+              const play = make("button", "heavy-button heavy-go", "Play anyway");
+              const skip = make("label", "heavy-skip", "");
+              const tick = document.createElementNS(htmlNS, "input");
+              const close = () => {
+                  shade.hidden = true;
+              };
+              box.setAttribute("role", "alertdialog");
+              box.setAttribute("aria-modal", "true");
+              cancel.setAttribute("type", "button");
+              play.setAttribute("type", "button");
+              tick.setAttribute("type", "checkbox");
+              skip.append(tick, "Don't show again");
+              actions.append(skip, cancel, play);
+              box.append(make("p", "heavy-text", "Warning: this game's download is over 1 GB. It may download slowly and perform poorly on your device."), actions);
+              shade.appendChild(box);
+              document.body.appendChild(shade);
+              cancel.addEventListener("click", close);
+              shade.addEventListener("click", (e) => {
+                  if (e.target === shade) close();
+              });
+              play.addEventListener("click", () => {
+                  if (tick.checked) {
+                      try {
+                          localStorage.setItem(heavyKey, "1");
+                      } catch (e) {}
+                  }
+                  close();
+                  openZone(heavyFile);
+              });
+              document.addEventListener("keydown", (e) => {
+                  if (e.key === "Escape") close();
+              });
+              heavyParts = { shade: shade, play: play };
+          }
+          heavyFile = file;
+          heavyParts.shade.hidden = false;
+          heavyParts.play.focus();
+      }
+
       function flowCards() {
           if (!listed || !columns) return;
+          flowShelves();
           const shown = [];
           for (let i = 0; i < built; i++) {
               if (entries[i].shown) shown.push(entries[i]);
           }
+          if (searchTerm) shown.sort((a, b) => a.rank - b.rank);
+          shownNow = shown;
+          if (!emptyNote) {
+              emptyNote = document.createElementNS(htmlNS, "div");
+              emptyNote.setAttribute("class", "zone-empty");
+              emptyNote.textContent = "no games found";
+          }
+          emptyNote.hidden = shown.length > 0 || built < entries.length;
+          if (!emptyNote.isConnected) container.appendChild(emptyNote);
           const count = Math.ceil(shown.length / columns);
           while (rows.length > count) rows.pop().element.remove();
           const added = document.createDocumentFragment();
@@ -1125,7 +1816,7 @@
           coverObserver = null;
           coverJobs.clear();
           coverQueue.clear();
-          entries.forEach(entry => {
+          entries.concat(shelves.flatMap(shelf => shelf.made ? Array.from(shelf.made.values()) : [])).forEach(entry => {
               if (entry.card && !entry.covered) plainCover(entry);
           });
       }
@@ -1134,6 +1825,10 @@
           const img = e.currentTarget;
           const r = img.naturalWidth / (img.naturalHeight || 1);
           if (Math.abs(r - 1) > 0.01) img.classList.add("fit-whole");
+      }
+
+      function revealCover(e) {
+          e.currentTarget.classList.add("loaded");
       }
 
       function retryCover(e) {
@@ -1222,6 +1917,27 @@
           pumpCovers();
       }
 
+      function equipCard(card) {
+          const entry = entryByCard.get(card);
+          if (!entry || equipped.has(card)) return;
+          equipped.add(card);
+          [["star", "star", "favorite"], ["report", "flag", "report a problem"], ["forget", "x", "remove from recently played"]].forEach(spec => {
+              if (spec[0] === "forget" && !entry.recent) return;
+              const part = document.createElementNS(htmlNS, "div");
+              const svg = document.createElementNS(svgNS, "svg");
+              const use = document.createElementNS(svgNS, "use");
+              part.setAttribute("class", "zone-tool zone-" + spec[0]);
+              part.setAttribute("title", spec[2]);
+              part.dataset.action = spec[0];
+              svg.setAttribute("class", "icon");
+              svg.setAttribute("aria-hidden", "true");
+              use.setAttribute("href", "#icon-" + spec[1]);
+              svg.appendChild(use);
+              part.appendChild(svg);
+              card.appendChild(part);
+          });
+      }
+
       function createCard(entry, eager) {
           const file = entry.file;
 
@@ -1233,6 +1949,7 @@
           img.setAttribute("class", "zone-cover");
           img.setAttribute("alt", "");
           img.setAttribute("decoding", "async");
+          img.addEventListener("load", revealCover);
           img.addEventListener("error", retryCover);
 
           const title = document.createElementNS(htmlNS, "div");
@@ -1241,8 +1958,19 @@
           title.textContent = fullName;
           zoneItem.setAttribute("title", fullName);
 
+          if (favoriteShelf.ids.includes(file.id)) zoneItem.classList.add("starred");
+          if (!cardsById.has(file.id)) cardsById.set(file.id, []);
+          cardsById.get(file.id).push(zoneItem);
+
           zoneItem.appendChild(img);
           zoneItem.appendChild(title);
+          if (touchOnly || zoneItem.classList.contains("starred")) equipCard(zoneItem);
+          if (heavySizes[file.id]) {
+              const size = document.createElementNS(htmlNS, "div");
+              size.setAttribute("class", "zone-size");
+              size.textContent = heavySizes[file.id];
+              zoneItem.appendChild(size);
+          }
           entry.card = zoneItem;
           entry.img = img;
           entry.src = file.cover.replace("{COVER_URL}", coverURL).replace("{HTML_URL}", htmlURL);
@@ -1281,8 +2009,12 @@
               if (file.id === -1) return;
               if (String(file.name).trim() === "[!] COMMENTS") return;
               const key = String(file.name).toLowerCase();
-              entries.push({ file: file, key: key, shown: key.includes(searchTerm), card: null, img: null, src: "", blob: null, loading: false, covered: false });
+              entries.push({ file: file, key: key, plain: plainText(file.name), short: shortName(file.name), maker: plainText(file.author || ""), tags: Array.isArray(file.special) ? file.special : [], rank: 0, shown: true, card: null, img: null, src: "", blob: null, loading: false, covered: false });
           });
+
+          entries.forEach(entry => entryById.set(entry.file.id, entry));
+          newShelf.ids = entries.map(entry => entry.file.id).sort((a, b) => b - a).slice(0, 12);
+          sift();
 
           startCovers();
           buildCards(firstBatch);
@@ -1314,6 +2046,7 @@
           try {
               await zonesReady;
               container.innerHTML = "";
+              searchBar.setAttribute("placeholder", "Search " + entries.length + " games...");
               listed = true;
               flowCards();
               requestAnimationFrame(() => setTimeout(buildRemaining, 0));
@@ -1373,6 +2106,7 @@
       }
 
       async function openZone(file) {
+          notePlayed(file.id);
           if (file.url.startsWith("http")) {
               window.open(file.url, "_blank");
               return;
@@ -1394,8 +2128,9 @@
           const settings = JSON.parse(JSON.stringify(sceneDefaults));
           try {
               const saved = JSON.parse(localStorage.getItem(sceneKey) || "{}");
-              if (saved.mode === "waves" || saved.mode === "matrix") settings.mode = saved.mode;
-              ["waves", "matrix"].forEach(mode => {
+              const modes = Object.keys(scenePresets);
+              if (modes.includes(saved.mode)) settings.mode = saved.mode;
+              modes.concat("solid").forEach(mode => {
                   Object.keys(settings[mode]).forEach(name => {
                       const value = saved[mode] ? saved[mode][name] : null;
                       if (typeof settings[mode][name] === "number") {
@@ -1430,16 +2165,22 @@
       }
 
       function themeScene() {
-          const active = sceneSettings.mode !== "black";
+          const active = sceneSettings.mode !== "solid" || sceneSettings.solid.background.toLowerCase() !== "#000000";
           sceneRoot.classList.toggle("scene-on", active);
           if (!active) {
+              sceneRoot.classList.remove("scene-light");
               sceneRoot.style.removeProperty("--scene-rgb");
               sceneRoot.style.removeProperty("--scene-ink");
+              sceneRoot.style.removeProperty("--scene-accent");
               return;
           }
-          const rgb = sceneRgb(sceneSettings[sceneSettings.mode].background);
+          const settings = sceneSettings[sceneSettings.mode];
+          const rgb = sceneRgb(settings.background);
+          const ink = sceneInk(rgb);
+          sceneRoot.classList.toggle("scene-light", ink[0] < 128);
           sceneRoot.style.setProperty("--scene-rgb", rgb.join(", "));
-          sceneRoot.style.setProperty("--scene-ink", sceneInk(rgb).join(", "));
+          sceneRoot.style.setProperty("--scene-ink", ink.join(", "));
+          sceneRoot.style.setProperty("--scene-accent", (settings.color ? sceneRgb(settings.color) : ink).join(", "));
       }
 
       function startWaves(canvas) {
@@ -1707,6 +2448,251 @@
           };
       }
 
+      function fitSceneCanvas(canvas, context) {
+          const ratio = Math.min(window.devicePixelRatio || 1, 2);
+          canvas.width = Math.round(window.innerWidth * ratio);
+          canvas.height = Math.round(window.innerHeight * ratio);
+          context.setTransform(ratio, 0, 0, ratio, 0, 0);
+      }
+
+      function runScene(mode, draw) {
+          let frame = 0;
+          let last = 0;
+          const render = (now) => {
+              const elapsed = last ? Math.min(now - last, 100) / 1000 : 0;
+              last = now;
+              draw(elapsed * Math.min(3, Math.max(0.25, sceneSettings[mode].speed)));
+              frame = requestAnimationFrame(render);
+          };
+          if (!sceneStill.matches) frame = requestAnimationFrame(render);
+          return () => cancelAnimationFrame(frame);
+      }
+
+      function startStars(canvas) {
+          const context = canvas.getContext("2d", { alpha: false });
+          if (!context) return null;
+
+          let stars = [];
+          let trails = [];
+          let background = "";
+          let rgb = "";
+          let width = 0;
+          let height = 0;
+          let time = 0;
+          let wait = 1;
+
+          const draw = (elapsed) => {
+              time += elapsed;
+              context.globalAlpha = 1;
+              context.fillStyle = background;
+              context.fillRect(0, 0, width, height);
+              context.fillStyle = "rgb(" + rgb + ")";
+              stars.forEach(star => {
+                  context.globalAlpha = star.glow * (0.55 + 0.45 * Math.sin(time * star.rate + star.phase));
+                  context.fillRect(star.x, star.y, star.size, star.size);
+              });
+              context.globalAlpha = 1;
+
+              wait -= elapsed;
+              if (wait <= 0) {
+                  const angle = Math.PI * (0.1 + Math.random() * 0.18);
+                  wait = 0.5 + Math.random() * 2.2;
+                  trails.push({
+                      x: Math.random() * width,
+                      y: Math.random() * height * 0.5 - 40,
+                      dx: Math.cos(angle) * (Math.random() < 0.5 ? 1 : -1),
+                      dy: Math.sin(angle),
+                      speed: 500 + Math.random() * 500,
+                      length: 90 + Math.random() * 130,
+                      span: 0.7 + Math.random() * 0.6,
+                      life: 0
+                  });
+              }
+              context.lineCap = "round";
+              context.lineWidth = 1.6;
+              trails = trails.filter(trail => {
+                  trail.life += elapsed;
+                  const travel = trail.life * trail.speed;
+                  const tail = Math.min(trail.length, travel);
+                  const headX = trail.x + trail.dx * travel;
+                  const headY = trail.y + trail.dy * travel;
+                  const tailX = headX - trail.dx * tail;
+                  const tailY = headY - trail.dy * tail;
+                  const fade = Math.min(1, trail.life / 0.15) * Math.max(0, 1 - trail.life / trail.span);
+                  const streak = context.createLinearGradient(headX, headY, tailX, tailY);
+                  streak.addColorStop(0, "rgba(" + rgb + ", " + fade + ")");
+                  streak.addColorStop(1, "rgba(" + rgb + ", 0)");
+                  context.strokeStyle = streak;
+                  context.beginPath();
+                  context.moveTo(headX, headY);
+                  context.lineTo(tailX, tailY);
+                  context.stroke();
+                  return trail.life < trail.span;
+              });
+          };
+
+          const refresh = (reset) => {
+              const settings = sceneSettings.stars;
+              background = settings.background;
+              rgb = sceneRgb(settings.color).join(", ");
+              if (reset || width !== window.innerWidth || height !== window.innerHeight) {
+                  width = window.innerWidth;
+                  height = window.innerHeight;
+                  fitSceneCanvas(canvas, context);
+                  stars = Array.from({ length: Math.round(width * height / 5200) }, () => ({
+                      x: Math.floor(Math.random() * width),
+                      y: Math.floor(Math.random() * height),
+                      size: Math.random() < 0.85 ? 1 : 2,
+                      glow: 0.35 + Math.random() * 0.65,
+                      rate: 0.6 + Math.random() * 1.8,
+                      phase: Math.random() * 6.283
+                  }));
+              }
+              if (sceneStill.matches) draw(0);
+          };
+
+          refresh(true);
+          return { refresh: refresh, stop: runScene("stars", draw) };
+      }
+
+      const gridFills = { key: "", haze: null, glow: null };
+
+      function paintSceneGrid(context, width, height, background, rgb, shift) {
+          const horizon = Math.round(height * 0.4);
+          const floor = height - horizon;
+          const cell = floor * 0.4;
+          const reach = Math.ceil(3 * width / cell);
+
+          context.globalAlpha = 1;
+          context.fillStyle = "rgb(" + background + ")";
+          context.fillRect(0, 0, width, height);
+
+          context.strokeStyle = "rgba(" + rgb + ", 0.7)";
+          context.lineWidth = 1;
+          context.beginPath();
+          for (let row = 0; row < 48; row++) {
+              const y = horizon + floor / (1 + (row - shift) * 0.3);
+              context.moveTo(0, y);
+              context.lineTo(width, y);
+          }
+          for (let column = -reach; column <= reach; column++) {
+              context.moveTo(width / 2, horizon);
+              context.lineTo(width / 2 + column * cell * 3, horizon + floor * 3);
+          }
+          context.stroke();
+
+          const key = height + "|" + background + "|" + rgb;
+          if (gridFills.key !== key) {
+              gridFills.key = key;
+              gridFills.haze = context.createLinearGradient(0, horizon, 0, horizon + floor * 0.55);
+              gridFills.haze.addColorStop(0, "rgba(" + background + ", 1)");
+              gridFills.haze.addColorStop(1, "rgba(" + background + ", 0)");
+              gridFills.glow = context.createLinearGradient(0, horizon - floor * 0.5, 0, horizon + floor * 0.45);
+              gridFills.glow.addColorStop(0, "rgba(" + rgb + ", 0)");
+              gridFills.glow.addColorStop(0.526, "rgba(" + rgb + ", 0.16)");
+              gridFills.glow.addColorStop(1, "rgba(" + rgb + ", 0)");
+          }
+          context.fillStyle = gridFills.haze;
+          context.fillRect(0, horizon - 2, width, floor * 0.55 + 2);
+          context.fillStyle = gridFills.glow;
+          context.fillRect(0, horizon - floor * 0.5, width, floor * 0.95);
+      }
+
+      function startGrid(canvas) {
+          const context = canvas.getContext("2d", { alpha: false });
+          if (!context) return null;
+
+          let background = "";
+          let rgb = "";
+          let width = 0;
+          let height = 0;
+          let shift = 0;
+
+          const draw = (elapsed) => {
+              shift = (shift + elapsed * 0.7) % 1;
+              paintSceneGrid(context, width, height, background, rgb, shift);
+          };
+
+          const refresh = (reset) => {
+              const settings = sceneSettings.grid;
+              background = sceneRgb(settings.background).join(", ");
+              rgb = sceneRgb(settings.color).join(", ");
+              if (reset || width !== window.innerWidth || height !== window.innerHeight) {
+                  width = window.innerWidth;
+                  height = window.innerHeight;
+                  fitSceneCanvas(canvas, context);
+              }
+              if (sceneStill.matches) draw(0);
+          };
+
+          refresh(true);
+          return { refresh: refresh, stop: runScene("grid", draw) };
+      }
+
+      function startFlicker(canvas) {
+          const context = canvas.getContext("2d", { alpha: false });
+          if (!context) return null;
+
+          const pitch = 10;
+          const square = 4;
+          let levels = new Float32Array(0);
+          let background = "";
+          let color = "";
+          let across = 0;
+          let width = 0;
+          let height = 0;
+          let owed = 0;
+
+          const paintAll = () => {
+              context.globalAlpha = 1;
+              context.fillStyle = background;
+              context.fillRect(0, 0, width, height);
+              context.fillStyle = color;
+              for (let index = 0; index < levels.length; index++) {
+                  context.globalAlpha = levels[index];
+                  context.fillRect((index % across) * pitch + 3, Math.floor(index / across) * pitch + 3, square, square);
+              }
+              context.globalAlpha = 1;
+          };
+
+          const draw = (elapsed) => {
+              owed += levels.length * 0.35 * elapsed;
+              while (owed >= 1) {
+                  const index = Math.floor(Math.random() * levels.length);
+                  const x = (index % across) * pitch + 3;
+                  const y = Math.floor(index / across) * pitch + 3;
+                  owed--;
+                  levels[index] = Math.random() * 0.34;
+                  context.globalAlpha = 1;
+                  context.fillStyle = background;
+                  context.fillRect(x - 1, y - 1, square + 2, square + 2);
+                  context.globalAlpha = levels[index];
+                  context.fillStyle = color;
+                  context.fillRect(x, y, square, square);
+              }
+              context.globalAlpha = 1;
+          };
+
+          const refresh = (reset) => {
+              const settings = sceneSettings.flicker;
+              const resized = reset || width !== window.innerWidth || height !== window.innerHeight;
+              if (!resized && background === settings.background && color === settings.color) return;
+              background = settings.background;
+              color = settings.color;
+              if (resized) {
+                  width = window.innerWidth;
+                  height = window.innerHeight;
+                  fitSceneCanvas(canvas, context);
+                  across = Math.ceil(width / pitch);
+                  levels = Float32Array.from({ length: across * Math.ceil(height / pitch) }, () => Math.random() * 0.34);
+              }
+              paintAll();
+          };
+
+          refresh(true);
+          return { refresh: refresh, stop: runScene("flicker", draw) };
+      }
+
       function startScene() {
           if (sceneRenderer) {
               sceneRenderer.stop();
@@ -1714,13 +2700,14 @@
               sceneRenderer = null;
           }
           themeScene();
-          if (sceneSettings.mode === "black") return;
+          if (sceneSettings.mode === "solid") return;
 
           const canvas = document.createElementNS(htmlNS, "canvas");
           canvas.setAttribute("id", "scene-canvas");
           canvas.setAttribute("aria-hidden", "true");
           container.parentNode.insertBefore(canvas, container.parentNode.firstChild);
-          sceneRenderer = sceneSettings.mode === "waves" ? startWaves(canvas) : startMatrix(canvas);
+          const starters = { waves: startWaves, matrix: startMatrix, stars: startStars, grid: startGrid, flicker: startFlicker };
+          sceneRenderer = starters[sceneSettings.mode](canvas);
           if (sceneRenderer) {
               sceneRenderer.canvas = canvas;
           } else {
@@ -1756,7 +2743,7 @@
               chip.setAttribute("aria-pressed", String(pair[0] === sceneSettings[path[0]].background && pair[1] === sceneSettings[path[0]].color));
           });
 
-          const colors = [sceneSettings.waves.background, sceneSettings.waves.color, sceneSettings.matrix.background, sceneSettings.matrix.color].join("");
+          const colors = sceneSettings.solid.background + Object.keys(scenePresets).map(mode => sceneSettings[mode].background + sceneSettings[mode].color).join("");
           if (colors !== scenePainted) {
               scenePainted = colors;
               paintScenePreviews();
@@ -1782,8 +2769,8 @@
               const width = canvas.width;
               const height = canvas.height;
               if (!context) return;
-              if (kind === "black") {
-                  context.fillStyle = "#000000";
+              if (kind === "solid") {
+                  context.fillStyle = sceneSettings.solid.background;
                   context.fillRect(0, 0, width, height);
                   return;
               }
@@ -1803,6 +2790,43 @@
                       }
                   }
                   context.putImageData(image, 0, 0);
+                  return;
+              }
+              if (kind === "grid") {
+                  paintSceneGrid(context, width, height, background.join(", "), color.join(", "), 0.35);
+                  return;
+              }
+              if (kind === "stars" || kind === "flicker") {
+                  context.globalAlpha = 1;
+                  context.fillStyle = sceneSettings[kind].background;
+                  context.fillRect(0, 0, width, height);
+                  context.fillStyle = sceneSettings[kind].color;
+                  if (kind === "flicker") {
+                      for (let row = 0; row * 16 < height; row++) {
+                          for (let column = 0; column * 16 < width; column++) {
+                              context.globalAlpha = Math.abs(Math.sin(column * 12.9898 + row * 78.233) * 43758.5453) % 1 * 0.5;
+                              context.fillRect(column * 16 + 4, row * 16 + 4, 8, 8);
+                          }
+                      }
+                  } else {
+                      for (let index = 0; index < 48; index++) {
+                          const size = index % 6 ? 2 : 3;
+                          context.globalAlpha = 0.35 + (index * 37 % 65) / 100;
+                          context.fillRect((index * 73 + 11) % width, (index * 131 + 29) % height, size, size);
+                      }
+                      const streak = context.createLinearGradient(118, 62, 44, 24);
+                      streak.addColorStop(0, "rgba(" + color.join(", ") + ", 1)");
+                      streak.addColorStop(1, "rgba(" + color.join(", ") + ", 0)");
+                      context.globalAlpha = 1;
+                      context.strokeStyle = streak;
+                      context.lineWidth = 2.5;
+                      context.lineCap = "round";
+                      context.beginPath();
+                      context.moveTo(118, 62);
+                      context.lineTo(44, 24);
+                      context.stroke();
+                  }
+                  context.globalAlpha = 1;
                   return;
               }
 
