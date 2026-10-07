@@ -5,28 +5,74 @@
     <title>Tab</title>
     <script>
       function guardTab(strict) {
+          var safe = "allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-modals allow-orientation-lock allow-presentation allow-downloads allow-storage-access-by-user-activation";
+          var banned = /^allow-(popups|popups-to-escape-sandbox|top-navigation|top-navigation-by-user-activation|top-navigation-to-custom-protocols)$/i;
           function seal(win) {
               var open = win.open;
-              win.close = function() {};
-              win.open = function(url, target) {
+              var shut = function() {};
+              var gate = function(url, target) {
                   var t = String(target || "_blank").toLowerCase();
                   if (strict || t === "_self" || t === "_top" || t === "_parent") return null;
                   return open.apply(win, arguments);
               };
-              win.open.sealed = true;
+              gate.sealed = true;
+              if (strict) {
+                  try {
+                      Object.defineProperty(win, "open", { configurable: false, get: function() { return gate; }, set: function() {} });
+                      Object.defineProperty(win, "close", { configurable: false, get: function() { return shut; }, set: function() {} });
+                      return;
+                  } catch (error) {}
+              }
+              win.close = shut;
+              win.open = gate;
           }
           function opensTab(node) {
               return String(node.getAttribute("target") || "").toLowerCase() === "_blank";
           }
           function leaves(a) {
-              if (!a.hasAttribute("href") || a.hasAttribute("download")) return false;
-              if (/^\s*javascript:/i.test(a.getAttribute("href"))) return false;
+              var href = a.hasAttribute("href") ? a.getAttribute("href") : a.getAttributeNS("http://www.w3.org/1999/xlink", "href");
+              if (href === null || a.hasAttribute("download")) return false;
+              if (/^\s*javascript:/i.test(href)) return false;
               if (!strict && opensTab(a)) return false;
-              return String(a.href).split("#")[0] !== location.href.split("#")[0];
+              try {
+                  return new URL(href, document.baseURI).href.split("#")[0] !== location.href.split("#")[0];
+              } catch (error) {
+                  return true;
+              }
           }
           function stopLink(e) {
-              var a = e.target && e.target.closest ? e.target.closest("a[href]") : null;
+              var a = e.target && e.target.closest ? e.target.closest("a, area") : null;
               if (a && leaves(a)) e.preventDefault();
+          }
+          function stopForm(e) {
+              var form = e.target;
+              if (!strict && form && form.getAttribute && opensTab(form)) return;
+              e.preventDefault();
+          }
+          function arm() {
+              document.addEventListener("click", stopLink, true);
+              document.addEventListener("submit", stopForm, true);
+              if (strict) document.addEventListener("auxclick", stopLink, true);
+          }
+          function stays(delta) {
+              try {
+                  var target = window.navigation.entries()[window.navigation.currentEntry.index + delta];
+                  return !!target && target.sameDocument;
+              } catch (error) {
+                  return false;
+              }
+          }
+          function denied() {
+              var gone = Promise.reject(new DOMException("Navigation blocked", "AbortError"));
+              gone.catch(function() {});
+              return { committed: gone, finished: gone };
+          }
+          function confine(frame) {
+              var now = frame.getAttribute("sandbox");
+              var next = now === null ? safe : now.split(/\s+/).filter(function(token) { return token && !banned.test(token); }).join(" ");
+              if (now === next) return false;
+              frame.setAttribute("sandbox", next);
+              return true;
           }
           var watched = 'meta[http-equiv="refresh" i]' + (strict ? ", iframe" : "");
           function tend(node) {
@@ -34,19 +80,26 @@
               else node.remove();
           }
           var frameWindow = Object.getOwnPropertyDescriptor(HTMLIFrameElement.prototype, "contentWindow").get;
+          var objectWindow = Object.getOwnPropertyDescriptor(HTMLObjectElement.prototype, "contentWindow").get;
           function sealFrame(frame) {
               try {
-                  var win = frameWindow.call(frame);
+                  var win = (frame.localName === "object" ? objectWindow : frameWindow).call(frame);
                   if (win && !win.open.sealed) seal(win);
               } catch (error) {}
           }
           function watchFrame(frame) {
+              if (confine(frame)) {
+                  var source = frame.hasAttribute("srcdoc") ? "srcdoc" : "src";
+                  if (frame.hasAttribute(source)) frame.setAttribute(source, frame.getAttribute(source));
+              }
               sealFrame(frame);
               frame.addEventListener("load", function() { sealFrame(frame); });
           }
           var nativeClick = HTMLAnchorElement.prototype.click;
+          var travel = History.prototype.go;
+          var write = Document.prototype.open;
           seal(window);
-          document.addEventListener("click", stopLink, true);
+          arm();
           HTMLAnchorElement.prototype.click = function() {
               if (!leaves(this)) nativeClick.call(this);
           };
@@ -54,20 +107,50 @@
               if (event && event.type === "click" && leaves(this)) return false;
               return EventTarget.prototype.dispatchEvent.call(this, event);
           };
-          document.addEventListener("submit", function(e) {
-              var form = e.target;
-              if (!strict && form && form.getAttribute && opensTab(form)) return;
-              e.preventDefault();
-          }, true);
           HTMLFormElement.prototype.submit = function() {};
+          History.prototype.go = function(delta) {
+              delta = Number(delta) || 0;
+              if (!delta || stays(delta)) travel.call(this, delta);
+          };
+          History.prototype.back = function() { this.go(-1); };
+          History.prototype.forward = function() { this.go(1); };
+          if (window.Navigation) {
+              ["back", "forward"].forEach(function(name, at) {
+                  var step = Navigation.prototype[name];
+                  Navigation.prototype[name] = function() {
+                      return stays(at ? 1 : -1) ? step.apply(this, arguments) : denied();
+                  };
+              });
+              var hop = Navigation.prototype.traverseTo;
+              Navigation.prototype.traverseTo = function(key) {
+                  var hit = this.entries().filter(function(entry) { return entry.key === key; })[0];
+                  return hit && hit.sameDocument ? hop.apply(this, arguments) : denied();
+              };
+          }
+          Document.prototype.open = function() {
+              if (arguments.length > 2) return window.open.apply(window, arguments);
+              var result = write.apply(this, arguments);
+              if (this === document) arm();
+              return result;
+          };
           if (strict) {
-              document.addEventListener("auxclick", stopLink, true);
-              Object.defineProperty(HTMLIFrameElement.prototype, "contentWindow", {
-                  configurable: true,
-                  get: function() {
-                      sealFrame(this);
-                      return frameWindow.call(this);
-                  }
+              var create = Document.prototype.createElement;
+              Document.prototype.createElement = function() {
+                  var node = create.apply(this, arguments);
+                  if (node && node.localName === "iframe") confine(node);
+                  return node;
+              };
+              [HTMLIFrameElement, HTMLObjectElement].forEach(function(kind) {
+                  ["contentWindow", "contentDocument"].forEach(function(name) {
+                      var reach = Object.getOwnPropertyDescriptor(kind.prototype, name).get;
+                      Object.defineProperty(kind.prototype, name, {
+                          configurable: true,
+                          get: function() {
+                              sealFrame(this);
+                              return reach.call(this);
+                          }
+                      });
+                  });
               });
           }
           new MutationObserver(function(list) {
@@ -1452,7 +1535,7 @@
               saveIds(recentKey, recentShelf.ids);
               flowCards();
           } else if (action === "report") {
-              openTab(reportURL + encodeURIComponent(entry.file.name));
+              window.open(reportURL + encodeURIComponent(entry.file.name), "_blank", "noopener");
           } else {
               playFile(entry.file);
           }
@@ -2156,18 +2239,10 @@
           return page;
       }
 
-      function openTab(url) {
-          const link = document.createElementNS(htmlNS, "a");
-          link.setAttribute("href", url);
-          link.setAttribute("target", "_blank");
-          link.setAttribute("rel", "noopener");
-          link.click();
-      }
-
       async function openZone(file) {
           notePlayed(file.id);
           if (file.url.startsWith("http")) {
-              openTab(file.url);
+              window.open(file.url, "_blank");
               return;
           }
 
@@ -2180,7 +2255,7 @@
                   '<style>html,body{margin:0;height:100%;background:#000;color:#fff;font-family:Arial,sans-serif;display:flex;align-items:center;justify-content:center}</style>' +
                   '</head><body><h2>Error loading game: ' + message + '</h2></body></html>');
           }
-          openTab(page);
+          window.open(page, "_blank", "noopener");
       }
 
       function loadScene() {
