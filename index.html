@@ -507,6 +507,19 @@
         text-align: left;
         color: #d0d0d0;
       }
+      .heavy-title {
+        margin: 0 0 10px 0;
+        font-weight: 600;
+        font-size: 15px;
+        color: #ffffff;
+      }
+      .heavy-list {
+        margin: 0 0 18px 0;
+        padding-left: 18px;
+      }
+      .heavy-list li {
+        line-height: 22px;
+      }
       .heavy-text {
         margin: 0 0 18px 0;
       }
@@ -1105,6 +1118,9 @@
       html.scene-on .zone-clear:focus-visible {
         color: rgb(var(--scene-ink));
       }
+      html.scene-on .heavy-title {
+        color: rgb(var(--scene-ink));
+      }
       html.scene-on .heavy-skip {
         color: rgba(var(--scene-ink), 0.72);
       }
@@ -1307,6 +1323,9 @@
       const favoriteKey = "funfri-favorites";
       const recentKey = "funfri-recent";
       const heavyKey = "funfri-heavy-skip";
+      const updateKey = "funfri-update";
+      const updateDate = "2026-10-07";
+      const updateNotes = ["more backgrounds", "recently played", "favorites"];
       const favoriteShelf = { label: "favorites", rows: 0, ids: loadIds(favoriteKey) };
       const recentShelf = { label: "recently played", rows: 1, ids: loadIds(recentKey) };
       const newShelf = { label: "new", rows: 1, ids: [] };
@@ -1433,7 +1452,7 @@
               saveIds(recentKey, recentShelf.ids);
               flowCards();
           } else if (action === "report") {
-              window.open(reportURL + encodeURIComponent(entry.file.name), "_blank", "noopener");
+              openTab(reportURL + encodeURIComponent(entry.file.name));
           } else {
               playFile(entry.file);
           }
@@ -1652,6 +1671,38 @@
           });
           shelfEnd.hidden = !any;
           if (!shelfEnd.isConnected) container.prepend(...shelves.flatMap(shelf => [shelf.title, shelf.row]), shelfEnd);
+      }
+
+      function showUpdate() {
+          try {
+              if (localStorage.getItem(updateKey) === updateDate) return;
+          } catch (e) {}
+          const make = (tag, name, text) => {
+              const part = document.createElementNS(htmlNS, tag);
+              part.setAttribute("class", name);
+              part.textContent = text;
+              return part;
+          };
+          const shade = make("div", "heavy-shade", "");
+          const box = make("div", "heavy-box", "");
+          const list = make("ul", "heavy-list", "");
+          const actions = make("div", "heavy-actions", "");
+          const okay = make("button", "heavy-button heavy-go", "okay");
+          box.setAttribute("role", "dialog");
+          box.setAttribute("aria-modal", "true");
+          okay.setAttribute("type", "button");
+          updateNotes.forEach(note => list.appendChild(make("li", "", note)));
+          actions.appendChild(okay);
+          box.append(make("p", "heavy-title", "oct 7 update"), list, actions);
+          shade.appendChild(box);
+          document.body.appendChild(shade);
+          okay.addEventListener("click", () => {
+              try {
+                  localStorage.setItem(updateKey, updateDate);
+              } catch (e) {}
+              shade.remove();
+          });
+          okay.focus();
       }
 
       function warnHeavy(file) {
@@ -2105,10 +2156,18 @@
           return page;
       }
 
+      function openTab(url) {
+          const link = document.createElementNS(htmlNS, "a");
+          link.setAttribute("href", url);
+          link.setAttribute("target", "_blank");
+          link.setAttribute("rel", "noopener");
+          link.click();
+      }
+
       async function openZone(file) {
           notePlayed(file.id);
           if (file.url.startsWith("http")) {
-              window.open(file.url, "_blank");
+              openTab(file.url);
               return;
           }
 
@@ -2121,7 +2180,7 @@
                   '<style>html,body{margin:0;height:100%;background:#000;color:#fff;font-family:Arial,sans-serif;display:flex;align-items:center;justify-content:center}</style>' +
                   '</head><body><h2>Error loading game: ' + message + '</h2></body></html>');
           }
-          window.open(page, "_blank", "noopener");
+          openTab(page);
       }
 
       function loadScene() {
@@ -2962,6 +3021,7 @@
           container.appendChild(status);
 
           listZones(zonesReady);
+          showUpdate();
           showCommit();
       }
 
