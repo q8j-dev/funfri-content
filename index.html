@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <title>Tab</title>
     <script>
-      function guardTab(strict) {
+      function guardTab(strict, trusted) {
           var safe = "allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-modals allow-orientation-lock allow-presentation allow-downloads allow-storage-access-by-user-activation";
           var banned = /^allow-(popups|popups-to-escape-sandbox|top-navigation|top-navigation-by-user-activation|top-navigation-to-custom-protocols)$/i;
           function seal(win) {
@@ -33,6 +33,7 @@
               var href = a.hasAttribute("href") ? a.getAttribute("href") : a.getAttributeNS("http://www.w3.org/1999/xlink", "href");
               if (href === null || a.hasAttribute("download")) return false;
               if (/^\s*javascript:/i.test(href)) return false;
+              if (trusted && trusted.has(a)) return false;
               if (!strict && opensTab(a)) return false;
               try {
                   return new URL(href, document.baseURI).href.split("#")[0] !== location.href.split("#")[0];
@@ -186,6 +187,8 @@
           document.title = "Tab";
           addEventListener("load", function() { document.title = "Tab"; });
       }
+
+      if (location.protocol !== "blob:") document.documentElement.classList.add("gated");
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
@@ -302,6 +305,76 @@
         border-color: rgba(255, 255, 255, 0.6);
         background-color: rgba(255, 255, 255, 0.07);
         color: #ffffff;
+      }
+      #gate {
+        display: none;
+      }
+      html.gated body > *:not(#gate) {
+        display: none !important;
+      }
+      html.gated #gate {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        border: 0;
+        background: none;
+        cursor: pointer;
+        outline: none;
+      }
+      #gate small {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 22px;
+        padding: 0 24px;
+        text-align: center;
+        font-family: "Space Grotesk", Arial, sans-serif;
+        font-weight: 500;
+        font-size: 13px;
+        line-height: 16px;
+        letter-spacing: 0.02em;
+        color: #6f6f6f;
+        user-select: none;
+      }
+      html.scene-on #gate small {
+        color: rgba(var(--scene-ink), 0.8);
+      }
+      #gate span {
+        display: flex;
+        align-items: center;
+        height: 46px;
+        padding: 0 22px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 14px;
+        background-color: rgba(255, 255, 255, 0.04);
+        color: #b0b0b0;
+        font-family: "Space Grotesk", Arial, sans-serif;
+        font-weight: 500;
+        font-size: 15px;
+        letter-spacing: 0.01em;
+        user-select: none;
+        transition: border-color 0.2s, background-color 0.2s, color 0.2s;
+      }
+      #gate:hover span,
+      #gate:focus-visible span {
+        border-color: rgba(255, 255, 255, 0.6);
+        background-color: rgba(255, 255, 255, 0.07);
+        color: #ffffff;
+      }
+      html.scene-on #gate span {
+        border-color: rgba(var(--scene-accent), 0.32);
+        background-color: rgba(var(--scene-rgb), 0.8);
+        color: rgba(var(--scene-ink), 0.72);
+      }
+      html.scene-on #gate:hover span,
+      html.scene-on #gate:focus-visible span {
+        border-color: rgba(var(--scene-accent), 0.85);
+        color: rgb(var(--scene-ink));
       }
       #icons {
         position: absolute;
@@ -1285,6 +1358,7 @@
     </style>
   </head>
   <body>
+    <button type="button" id="gate"><span>Click to continue</span><small>Come back to this tab whenever you need to re-enter the site.</small></button>
     <svg id="icons" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <symbol id="icon-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></symbol>
       <symbol id="icon-star" viewBox="0 0 24 24"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></symbol>
@@ -1387,6 +1461,10 @@
       const attributionEl = document.getElementById('attribution');
       const fontSheet = document.querySelector('link[href*="fonts.googleapis.com/css"]');
       const htmlNS = "http://www.w3.org/1999/xhtml";
+      const openWindow = window.open.bind(window);
+      const trustedLinks = new WeakSet();
+      const gated = document.documentElement.classList.contains("gated");
+      const siteSource = gated ? pageSource() : "";
 
       const zonesURL = "https://rawcdn.githack.com/freebuisness/assets/main/zones.json";
       const coverURL = "https://rawcdn.githack.com/freebuisness/covers/main";
@@ -1535,7 +1613,7 @@
               saveIds(recentKey, recentShelf.ids);
               flowCards();
           } else if (action === "report") {
-              window.open(reportURL + encodeURIComponent(entry.file.name), "_blank", "noopener");
+              openWindow(reportURL + encodeURIComponent(entry.file.name), "_blank", "noopener");
           } else {
               playFile(entry.file);
           }
@@ -2242,7 +2320,7 @@
       async function openZone(file) {
           notePlayed(file.id);
           if (file.url.startsWith("http")) {
-              window.open(file.url, "_blank");
+              openWindow(file.url, "_blank");
               return;
           }
 
@@ -2255,7 +2333,7 @@
                   '<style>html,body{margin:0;height:100%;background:#000;color:#fff;font-family:Arial,sans-serif;display:flex;align-items:center;justify-content:center}</style>' +
                   '</head><body><h2>Error loading game: ' + message + '</h2></body></html>');
           }
-          window.open(page, "_blank", "noopener");
+          openWindow(page, "_blank", "noopener");
       }
 
       function loadScene() {
@@ -3059,7 +3137,7 @@
       }
 
       async function start() {
-          guardTab();
+          guardTab(true, trustedLinks);
           watchScene();
           const zonesReady = loadZones();
           zonesReady.catch(() => {});
@@ -3075,6 +3153,7 @@
           gnMathLink.setAttribute("target", "_blank");
           gnMathLink.setAttribute("rel", "noopener");
           gnMathLink.textContent = "gn-math";
+          trustedLinks.add(gnMathLink);
           attributionEl.appendChild(gnMathLink);
           const notice = document.createElementNS(htmlNS, "span");
           notice.setAttribute("id", "notice");
@@ -3084,6 +3163,7 @@
           reportLink.setAttribute("target", "_blank");
           reportLink.setAttribute("rel", "noopener");
           reportLink.textContent = "report broken games";
+          trustedLinks.add(reportLink);
           notice.appendChild(reportLink);
           notice.appendChild(document.createElementNS(htmlNS, "br"));
           notice.appendChild(document.createTextNode("funfri is not a proxy and it never will be."));
@@ -3100,7 +3180,28 @@
           showCommit();
       }
 
-      start();
+      function pageSource() {
+          const root = document.documentElement.cloneNode(true);
+          root.classList.remove("gated");
+          if (!root.getAttribute("class")) root.removeAttribute("class");
+          return "<!DOCTYPE html>" + root.outerHTML;
+      }
+
+      function startGate() {
+          let page = "";
+          guardTab(true, trustedLinks);
+          themeScene();
+          document.getElementById("gate").addEventListener("click", () => {
+              page = page || blobPage(siteSource);
+              openWindow(page, "_blank", "noopener");
+          });
+      }
+
+      if (gated) {
+          startGate();
+      } else {
+          start();
+      }
     </script>
   </body>
 </html>
