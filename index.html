@@ -193,6 +193,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
     <link rel="preconnect" href="https://rawcdn.githack.com" />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
     <link rel="preconnect" href="https://raw.githubusercontent.com" />
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Unbounded:wght@900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
     <style>
@@ -861,7 +862,8 @@
         height: 100%;
         pointer-events: none;
       }
-      #scene-button {
+      #scene-button,
+      #source-button {
         position: absolute;
         top: 14px;
         right: 16px;
@@ -884,18 +886,30 @@
         user-select: none;
         transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s, color 0.2s;
       }
-      #scene-button:hover {
+      #scene-button:hover,
+      #source-button:hover {
         border-color: rgba(255, 255, 255, 0.22);
         color: #ffffff;
       }
       #scene-button:focus-visible,
-      #scene-button[aria-expanded="true"] {
+      #scene-button[aria-expanded="true"],
+      #source-button:focus-visible,
+      #source-button[aria-expanded="true"] {
         border-color: rgba(255, 255, 255, 0.6);
         background-color: rgba(255, 255, 255, 0.07);
         box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.07);
         color: #ffffff;
       }
-      #scene-panel {
+      #source-button {
+        right: auto;
+        left: 16px;
+      }
+      #source-name {
+        margin-left: 6px;
+        color: #ffffff;
+      }
+      #scene-panel,
+      #source-panel {
         position: absolute;
         top: 60px;
         right: 16px;
@@ -921,11 +935,22 @@
         transform: translateY(-6px);
         transition: opacity 0.15s ease, transform 0.15s ease, visibility 0s 0.15s;
       }
-      #scene-panel.open {
+      #scene-panel.open,
+      #source-panel.open {
         opacity: 1;
         visibility: visible;
         transform: none;
         transition: opacity 0.15s ease, transform 0.15s ease;
+      }
+      #source-panel {
+        right: auto;
+        left: 16px;
+        width: auto;
+        padding: 10px;
+      }
+      .source-list {
+        display: flex;
+        gap: 8px;
       }
       .scene-modes {
         display: grid;
@@ -1176,22 +1201,32 @@
         color: rgb(var(--scene-ink));
         text-shadow: 0 0 8px rgb(var(--scene-rgb)), 0 0 2px rgb(var(--scene-rgb));
       }
-      html.scene-on #scene-button {
+      html.scene-on #scene-button,
+      html.scene-on #source-button {
         border-color: rgba(var(--scene-accent), 0.32);
         background-color: rgba(var(--scene-rgb), 0.8);
         color: rgba(var(--scene-ink), 0.72);
       }
       html.scene-on #scene-button:hover,
       html.scene-on #scene-button[aria-expanded="true"],
-      html.scene-on #scene-button:focus-visible {
+      html.scene-on #scene-button:focus-visible,
+      html.scene-on #source-button:hover,
+      html.scene-on #source-button[aria-expanded="true"],
+      html.scene-on #source-button:focus-visible {
         border-color: rgba(var(--scene-accent), 0.85);
         color: rgb(var(--scene-ink));
       }
       html.scene-on #scene-button[aria-expanded="true"],
-      html.scene-on #scene-button:focus-visible {
+      html.scene-on #scene-button:focus-visible,
+      html.scene-on #source-button[aria-expanded="true"],
+      html.scene-on #source-button:focus-visible {
         box-shadow: 0 0 0 4px rgba(var(--scene-accent), 0.14);
       }
+      html.scene-on #source-name {
+        color: rgb(var(--scene-ink));
+      }
       html.scene-on #scene-panel,
+      html.scene-on #source-panel,
       html.scene-on .heavy-box {
         border-color: rgba(var(--scene-accent), 0.32);
         background-color: rgb(var(--scene-rgb));
@@ -1323,7 +1358,9 @@
       }
       @media (prefers-reduced-motion: reduce) {
         #scene-panel,
-        #scene-panel.open { transition: none; }
+        #scene-panel.open,
+        #source-panel,
+        #source-panel.open { transition: none; }
       }
       #commit {
         position: fixed;
@@ -1369,6 +1406,10 @@
     <header id="top">
       <div id="logo"></div>
       <div id="attribution"></div>
+      <button type="button" id="source-button" aria-haspopup="dialog" aria-expanded="false" aria-controls="source-panel">Source<span id="source-name"></span></button>
+      <div id="source-panel" role="dialog" aria-label="Source">
+        <div class="source-list" role="group" aria-label="Game source"></div>
+      </div>
       <button type="button" id="scene-button" aria-haspopup="dialog" aria-expanded="false" aria-controls="scene-panel">
         Background
       </button>
@@ -1466,9 +1507,24 @@
       const gated = document.documentElement.classList.contains("gated");
       const siteSource = gated ? pageSource() : "";
 
-      const zonesURL = "https://rawcdn.githack.com/freebuisness/assets/main/zones.json";
-      const coverURL = "https://rawcdn.githack.com/freebuisness/covers/main";
-      const htmlURL = "https://rawcdn.githack.com/freebuisness/html/main";
+      const sourceKey = "funfri-source";
+      const sources = {
+          githack: {
+              zones: "https://rawcdn.githack.com/freebuisness/assets/main/zones.json",
+              covers: "https://rawcdn.githack.com/freebuisness/covers/main",
+              html: "https://rawcdn.githack.com/freebuisness/html/main"
+          },
+          jsdelivr: {
+              zones: "https://cdn.jsdelivr.net/gh/freebuisness/assets@main/zones.json",
+              covers: "https://cdn.jsdelivr.net/gh/freebuisness/covers@main",
+              html: "https://cdn.jsdelivr.net/gh/freebuisness/html@main"
+          }
+      };
+      const sourceButton = document.getElementById('source-button');
+      const sourcePanel = document.getElementById('source-panel');
+      let sourceName = loadSource();
+      let coverURL = sources[sourceName].covers;
+      let htmlURL = sources[sourceName].html;
 
       const firstBatch = 48;
       const eagerCovers = 18;
@@ -1555,7 +1611,10 @@
 
       document.addEventListener("keydown", (e) => {
           const typing = /^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || "");
-          if (e.key === "Escape" && scenePanel.classList.contains("open")) {
+          if (e.key === "Escape" && sourcePanel.classList.contains("open")) {
+              toggleSourcePanel(false);
+              sourceButton.focus();
+          } else if (e.key === "Escape" && scenePanel.classList.contains("open")) {
               toggleScenePanel(false);
               sceneButton.focus();
           } else if (e.key === "/" && !typing && !e.ctrlKey && !e.metaKey && !e.altKey) {
@@ -2185,7 +2244,7 @@
           }
           entry.card = zoneItem;
           entry.img = img;
-          entry.src = file.cover.replace("{COVER_URL}", coverURL).replace("{HTML_URL}", htmlURL);
+          entry.src = coverAddress(file);
 
           if (!coverWorker) {
               plainCover(entry);
@@ -2210,8 +2269,98 @@
           requestAnimationFrame(() => setTimeout(buildRemaining, 0));
       }
 
+      function loadSource() {
+          let saved = "";
+          try {
+              saved = localStorage.getItem(sourceKey) || "";
+          } catch (e) {}
+          return Object.prototype.hasOwnProperty.call(sources, saved) ? saved : "githack";
+      }
+
+      function coverAddress(file) {
+          return file.cover.replace("{COVER_URL}", coverURL).replace("{HTML_URL}", htmlURL);
+      }
+
+      async function quickText(url, options) {
+          const stop = new AbortController();
+          const timer = setTimeout(() => stop.abort(), 3000);
+          try {
+              const response = await fetch(url, Object.assign({ signal: stop.signal }, options));
+              return response.ok ? (await response.text()).trim() : "";
+          } catch (error) {
+              return "";
+          } finally {
+              clearTimeout(timer);
+          }
+      }
+
+      async function zonesAddress() {
+          if (sourceName !== "jsdelivr") return sources[sourceName].zones;
+          const sha = await quickText("https://api.github.com/repos/freebuisness/assets/commits/main", { headers: { Accept: "application/vnd.github.sha" } });
+          return /^[0-9a-f]{40}$/.test(sha) ? "https://cdn.jsdelivr.net/gh/freebuisness/assets@" + sha + "/zones.json" : sources.jsdelivr.zones;
+      }
+
+      function toggleSourcePanel(open) {
+          sourcePanel.classList.toggle("open", open);
+          sourceButton.setAttribute("aria-expanded", String(open));
+      }
+
+      function syncSource() {
+          document.getElementById("source-name").textContent = sourceName;
+          sourcePanel.querySelectorAll("[data-source]").forEach(chip => {
+              chip.setAttribute("aria-pressed", String(chip.dataset.source === sourceName));
+          });
+      }
+
+      function setSource(name) {
+          if (!Object.prototype.hasOwnProperty.call(sources, name) || name === sourceName) return;
+          sourceName = name;
+          coverURL = sources[name].covers;
+          htmlURL = sources[name].html;
+          try {
+              localStorage.setItem(sourceKey, name);
+          } catch (e) {}
+          entries.concat(shelves.flatMap(shelf => shelf.made ? Array.from(shelf.made.values()) : [])).forEach(entry => {
+              if (!entry.card) return;
+              entry.src = coverAddress(entry.file);
+              if (entry.covered && entry.img.complete && !entry.img.naturalWidth) showCover(entry, entry.src);
+          });
+          syncSource();
+      }
+
+      function watchSource() {
+          const list = sourcePanel.querySelector(".source-list");
+          Object.keys(sources).forEach(name => {
+              const chip = document.createElementNS(htmlNS, "button");
+              chip.setAttribute("type", "button");
+              chip.setAttribute("class", "filter-chip");
+              chip.dataset.source = name;
+              chip.textContent = name;
+              list.appendChild(chip);
+          });
+
+          sourceButton.addEventListener("click", () => {
+              toggleSourcePanel(!sourcePanel.classList.contains("open"));
+          });
+
+          document.addEventListener("pointerdown", (e) => {
+              if (!sourcePanel.classList.contains("open")) return;
+              if (sourcePanel.contains(e.target) || sourceButton.contains(e.target)) return;
+              toggleSourcePanel(false);
+          });
+
+          list.addEventListener("click", (e) => {
+              const chip = e.target.closest ? e.target.closest("[data-source]") : null;
+              if (!chip) return;
+              setSource(chip.dataset.source);
+              toggleSourcePanel(false);
+          });
+
+          syncSource();
+      }
+
       async function loadZones() {
-          const response = await fetch(zonesURL + "?t=" + Date.now());
+          const response = await fetch(await zonesAddress() + "?t=" + Date.now());
           const data = await response.json();
           const collator = new Intl.Collator();
 
@@ -2284,13 +2433,20 @@
           return response.text();
       }
 
-      async function buildGame(listed) {
-          const numbered = listed.match(/^(.*\/\d+)[^\/]*\.html$/);
-          const spares = numbered ? [numbered[1] + ".html", numbered[1] + "-f.html"].filter(spare => spare !== listed) : [];
+      function gameAddresses(file) {
+          const order = [sourceName].concat(Object.keys(sources).filter(name => name !== sourceName));
+          return order.map(name => file.url.replace("{COVER_URL}", sources[name].covers).replace("{HTML_URL}", sources[name].html));
+      }
+
+      async function buildGame(addresses) {
+          const spares = addresses.flatMap(listed => {
+              const numbered = listed.match(/^(.*\/\d+)[^\/]*\.html$/);
+              return numbered ? [numbered[1] + ".html", numbered[1] + "-f.html"].filter(spare => spare !== listed) : [];
+          });
           let html;
           let url;
           let failure;
-          for (url of [listed].concat(spares)) {
+          for (url of addresses.concat(spares)) {
               try {
                   html = await fetchGame(url);
                   break;
@@ -2307,10 +2463,11 @@
       }
 
       function gamePage(file) {
-          const url = file.url.replace("{COVER_URL}", coverURL).replace("{HTML_URL}", htmlURL);
+          const addresses = gameAddresses(file);
+          const url = addresses[0];
           let page = gamePages.get(url);
           if (!page) {
-              page = buildGame(url);
+              page = buildGame(addresses);
               page.catch(() => gamePages.delete(url));
               gamePages.set(url, page);
           }
@@ -3139,6 +3296,7 @@
       async function start() {
           guardTab(true, trustedLinks);
           watchScene();
+          watchSource();
           const zonesReady = loadZones();
           zonesReady.catch(() => {});
           watchWidth();
