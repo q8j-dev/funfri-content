@@ -1317,7 +1317,7 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
 </body>
 </html>
 `},pE=[["music","music","https://gn.local/music.html"],["drawing","drawing","https://kreska.art/app/"],["books","books","https://www.overdrive.com/explore"],["YouTube","youtube","https://www.youtube.com/"]],mg=(()=>{try{return localStorage}catch{return null}})(),dI=(()=>{try{return sessionStorage}catch{return null}})();function Kt(A,g,B){try{return JSON.parse(A?.getItem(g)||"null")??B}catch{return B}}function LE(A,g,B){try{return A?.setItem(g,JSON.stringify(B)),!0}catch{return!1}}var gg=Kt(mg,"gn-desktop",{}),Xg=St({storage:mg,fetch:globalThis.fetch.bind(globalThis)}),Wn={default:"#fc2651",ocean:"#3b82f6",emerald:"#10b981",violet:"#8b5cf6",sunset:"#f97316",rose:"#ec4899",cyan:"#06b6d4",amber:"#f59e0b",red:"#ef4444",lime:"#84cc16",teal:"#14b8a6",sky:"#0ea5e9",indigo:"#6366f1",fuchsia:"#d946ef",navy:"#172554"};if(!gg.accent){let A;try{A=mg?.getItem("gnCustom")}catch{}let g;try{g=mg?.getItem("gnTheme")}catch{}gg.accent=g==="custom"?A:Wn[g]}/^#[a-f\d]{6}$/i.test(gg.accent||"")||(gg.accent="#fc2651");function ZE(){document.documentElement.style.setProperty("--accent",gg.accent),document.documentElement.classList.toggle("light",gg.light===!0),$("appearance").value=gg.light?"light":"dark",$("accent").value=gg.accent}ZE();function Wt(){let A=$("clock");if(!A)return;let g=new Date;A.dateTime=g.toISOString(),A.textContent=g.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",second:"2-digit"})+`
-`+g.toLocaleDateString("en-US",{month:"numeric",day:"numeric",year:"numeric"})}Wt();var xn=setInterval(Wt,1e3),Jg=new QQ({endpoints:UI,storage:mg}),Tg,cB,Ag="",xt="",jg=!1,CQ=0;function vt(A=!1){CQ++,Tg?.dispose(),Tg=null,cB=null,A&&(Jg=new QQ({endpoints:UI,storage:mg}))}var Yg=Kt(dI,"gn.singlefile.history",[]);Array.isArray(Yg)||(Yg=[]);var hB;try{hB=dI?.getItem("gn.singlefile.session-key"),hB||(hB=crypto.randomUUID(),dI?.setItem("gn.singlefile.session-key",hB))}catch{hB=crypto.randomUUID()}var Xt=bt(globalThis.indexedDB,hB),vn=Xt.read().catch(()=>({}));async function SE(){return await vn||{}}async function Xn(A,g={}){let B={...g};B.body instanceof URLSearchParams&&(B.body=B.body.toString()),B.headers instanceof Headers&&(B.headers=Array.from(B.headers)),await Xt.write({snapshot:A,options:B})}var Tn=history.replaceState.bind(history),jn=location.reload.bind(location);async function EQ(A,g={},B=Tg?.snapshot(),Q=!0){try{B??=(await SE()).snapshot,await Xn(B,g)}catch(e){alert("could not save this session: "+e.message);return}let C=B?.url||xt;Q&&C&&Yg.at(-1)!==C&&Yg.push(C),Yg=Yg.slice(-50),LE(dI,"gn.singlefile.history",Yg);let o=new URL(location.href);o.hash=A?new URLSearchParams({open:A}).toString():"",Tn(null,"",o.href),globalThis.__funfriBar?.nav?.(A,g)||(globalThis.__funfriGuard?.allowLeave(),jn())}function zn(A){if(A.type==="ready"){Jg.confirm(Ag);return}if(A.type==="error"&&!document.querySelector("[data-gn-portable-toolbar]")){let g=$("status");g&&(g.textContent=A.error||"this page could not load")}}async function MI(){if(Tg)return Tg;if(cB)return cB;let A=CQ;return cB=(async()=>{let g;for(let B=0;B<UI.length;B++)try{Ag=(await Jg.resolve()).url;let Q=await SE(),C=await Mt({endpoint:Ag,localDocuments:mE,snapshot:Q.snapshot,onEvent:zn,onNavigate:({url:e,options:c,snapshot:r})=>EQ(e,c,r),onHome:({snapshot:e})=>EQ("",{},e),onBack:({snapshot:e})=>EQ(Yg.pop()||"",{},e,!1),onReload:({url:e,snapshot:c})=>EQ(e,{},c,!1)});if(A!==CQ)throw C.dispose(),new DOMException("connection changed","AbortError");Tg=C;let o=$("connection-status");return globalThis.__funfriWisp=Ag,o&&(o.textContent="connected through "+new URL(Ag).hostname),C}catch(Q){if(A!==CQ)throw Q;g=Q,Ag&&Jg.reject(Ag)}throw g||Error("no connection is available. try again in a moment.")})().finally(()=>{A===CQ&&(cB=null)}),cB}async function nB(A,g="app",B={}){if(!jg){jg=!0,xt=A,$("loading").hidden=!1,$("loading-title").textContent="opening "+g,$("status").textContent="loading...",$("retry").hidden=!0,$("retry").onclick=async()=>{Ag&&Jg.reject(Ag),vt(!0),await nB(A,g,B)};try{let Q,C=!B.method||B.method.toUpperCase()==="GET";for(let o=0;o<(C?UI.length:1);o++){let e;try{e=await MI()}catch(c){throw Q||c}kI.disconnect();try{mE[A]?await e.navigateHTML(mE[A],A):await e.navigate(A,B),clearInterval(xn),$n();return}catch(c){if(Q=c,e.session.rendered||!C)throw c;Jg.reject(Ag),e.dispose(),Tg=null;let r=$("status");r&&(r.textContent="still loading...")}}throw Q||Error("this app could not connect")}catch(Q){let C=$("status");C&&(C.textContent=Q.message||"this page could not load");let o=$("retry");o&&(o.hidden=!1)}finally{jg=!1}}}$("apps").innerHTML=pE.map(([A,g])=>`<button class="app-tile" data-app="${A}"><span class="app-icon">${Vt[A]||Vt.browser}</span><span>${g}</span></button>`).join("");$("apps").onclick=A=>{let g=A.target.closest("[data-app]")?.dataset.app,B=pE.find(Q=>Q[0]===g);B&&nB(B[2],B[1])};$("cancel").onclick=()=>EQ("");$("settings").onclick=()=>$("preferences").showModal();$("appearance").onchange=A=>{gg.light=A.target.value==="light",LE(mg,"gn-desktop",gg),ZE()};$("accent").oninput=A=>{gg.accent=A.target.value,LE(mg,"gn-desktop",gg),ZE()};$("reconnect").onclick=async()=>{$("reconnect").disabled=!0,$("connection-status").textContent="finding a connection...";try{Ag&&Jg.reject(Ag),vt(!0),await MI()}catch(A){$("connection-status").textContent=A.message}finally{$("reconnect").disabled=!1}};$("notices").textContent=`gn-math portable fork
+`+g.toLocaleDateString("en-US",{month:"numeric",day:"numeric",year:"numeric"})}Wt();var xn=setInterval(Wt,1e3),Jg=new QQ({endpoints:UI,storage:mg}),Tg,cB,Ag="",xt="",jg=!1,CQ=0;function vt(A=!1){CQ++,Tg?.dispose(),Tg=null,cB=null,A&&(Jg=new QQ({endpoints:UI,storage:mg}))}globalThis.__funfriWispPick={candidates:()=>Jg.candidates(),resolve:()=>Jg.resolve(),probe:u=>Jg.probe(u,Jg.probeTimeoutMs),reject:u=>Jg.reject(u),confirm:u=>Jg.confirm(u),get current(){return Ag}};var Yg=Kt(dI,"gn.singlefile.history",[]);Array.isArray(Yg)||(Yg=[]);var hB;try{hB=dI?.getItem("gn.singlefile.session-key"),hB||(hB=crypto.randomUUID(),dI?.setItem("gn.singlefile.session-key",hB))}catch{hB=crypto.randomUUID()}var Xt=bt(globalThis.indexedDB,hB),vn=Xt.read().catch(()=>({}));async function SE(){return await vn||{}}async function Xn(A,g={}){let B={...g};B.body instanceof URLSearchParams&&(B.body=B.body.toString()),B.headers instanceof Headers&&(B.headers=Array.from(B.headers)),await Xt.write({snapshot:A,options:B})}var Tn=history.replaceState.bind(history),jn=location.reload.bind(location);async function EQ(A,g={},B=Tg?.snapshot(),Q=!0){try{B??=(await SE()).snapshot,await Xn(B,g)}catch(e){alert("could not save this session: "+e.message);return}let C=B?.url||xt;Q&&C&&Yg.at(-1)!==C&&Yg.push(C),Yg=Yg.slice(-50),LE(dI,"gn.singlefile.history",Yg);let o=new URL(location.href);o.hash=A?new URLSearchParams({open:A}).toString():"",Tn(null,"",o.href),globalThis.__funfriBar?.nav?.(A,g)||(globalThis.__funfriGuard?.allowLeave(),jn())}function zn(A){if(A.type==="ready"){Jg.confirm(Ag);return}if(A.type==="error"&&!document.querySelector("[data-gn-portable-toolbar]")){let g=$("status");g&&(g.textContent=A.error||"this page could not load")}}async function MI(){if(Tg)return Tg;if(cB)return cB;let A=CQ;return cB=(async()=>{let g;for(let B=0;B<UI.length;B++)try{Ag=(await Jg.resolve()).url;let Q=await SE(),C=await Mt({endpoint:Ag,localDocuments:mE,snapshot:Q.snapshot,onEvent:zn,onNavigate:({url:e,options:c,snapshot:r})=>EQ(e,c,r),onHome:({snapshot:e})=>EQ("",{},e),onBack:({snapshot:e})=>EQ(Yg.pop()||"",{},e,!1),onReload:({url:e,snapshot:c})=>EQ(e,{},c,!1)});if(A!==CQ)throw C.dispose(),new DOMException("connection changed","AbortError");Tg=C;let o=$("connection-status");return globalThis.__funfriWisp=Ag,o&&(o.textContent="connected through "+new URL(Ag).hostname),C}catch(Q){if(A!==CQ)throw Q;g=Q,Ag&&Jg.reject(Ag)}throw g||Error("no connection is available. try again in a moment.")})().finally(()=>{A===CQ&&(cB=null)}),cB}async function nB(A,g="app",B={}){if(!jg){jg=!0,xt=A,$("loading").hidden=!1,$("loading-title").textContent="opening "+g,$("status").textContent="loading...",$("retry").hidden=!0,$("retry").onclick=async()=>{Ag&&Jg.reject(Ag),vt(!0),await nB(A,g,B)};try{let Q,C=!B.method||B.method.toUpperCase()==="GET";for(let o=0;o<(C?UI.length:1);o++){let e;try{e=await MI()}catch(c){throw Q||c}kI.disconnect();try{mE[A]?await e.navigateHTML(mE[A],A):await e.navigate(A,B),clearInterval(xn),$n();return}catch(c){if(Q=c,e.session.rendered||!C)throw c;Jg.reject(Ag),e.dispose(),Tg=null;let r=$("status");r&&(r.textContent="still loading...")}}throw Q||Error("this app could not connect")}catch(Q){let C=$("status");C&&(C.textContent=Q.message||"this page could not load");let o=$("retry");o&&(o.hidden=!1)}finally{jg=!1}}}$("apps").innerHTML=pE.map(([A,g])=>`<button class="app-tile" data-app="${A}"><span class="app-icon">${Vt[A]||Vt.browser}</span><span>${g}</span></button>`).join("");$("apps").onclick=A=>{let g=A.target.closest("[data-app]")?.dataset.app,B=pE.find(Q=>Q[0]===g);B&&nB(B[2],B[1])};$("cancel").onclick=()=>EQ("");$("settings").onclick=()=>$("preferences").showModal();$("appearance").onchange=A=>{gg.light=A.target.value==="light",LE(mg,"gn-desktop",gg),ZE()};$("accent").oninput=A=>{gg.accent=A.target.value,LE(mg,"gn-desktop",gg),ZE()};$("reconnect").onclick=async()=>{$("reconnect").disabled=!0,$("connection-status").textContent="finding a connection...";try{Ag&&Jg.reject(Ag),vt(!0),await MI()}catch(A){$("connection-status").textContent=A.message}finally{$("reconnect").disabled=!1}};$("notices").textContent=`gn-math portable fork
 source: i-w/outputs/wisp-no-sw
 wisp selection: korona/src/core/singlefile/wisp-resolver.ts
 
@@ -8514,7 +8514,7 @@ function loadingStart(name){
   ]};
   loadState.tick=setInterval(()=>{const s=loadState;if(!s)return;const t=Date.now();if(s.ready&&t-s.start>=600&&(t-s.last>=1200||t-s.readyAt>=10000))loadingDone()},200);
 }
-appLoadingSkip?.addEventListener("click",()=>{if(appLoadingSkip.dataset.mode==="retry"){globalThis.__funfriGuard?.allowLeave();location.reload()}else loadingDone()});
+appLoadingSkip?.addEventListener("click",()=>{const webblox=appView&&appView.dataset.mode==="webblox"?byId("webblox-frame"):null;if(appLoadingSkip.dataset.mode==="retry"){if(webblox){loadWebblox(webblox);return}globalThis.__funfriGuard?.allowLeave();location.reload()}else loadingDone()});
 const MUSIC_URL="https://gn.local/music.html";
 const miniEls={root:byId("mini-player"),cover:byId("mini-cover"),title:byId("mini-title"),artist:byId("mini-artist"),play:byId("mini-play"),playIcon:byId("mini-play-icon")};
 const guestNative={byId:Document.prototype.getElementById,click:HTMLElement.prototype.click,text:Object.getOwnPropertyDescriptor(Node.prototype,"textContent").get,attr:Element.prototype.getAttribute,paused:Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype,"paused").get,currentSrc:Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype,"currentSrc").get};
@@ -8617,18 +8617,64 @@ function addWebbloxTile(fresh){
   if(fresh)tile.classList.add("tile-new");
   apps.append(tile);
 }
-function funfriWispServer(){
-  const live=globalThis.__funfriWisp;
-  if(typeof live==="string"&&/^wss?:\/\//i.test(live))return live;
-  try{
-    const cached=JSON.parse(localStorage.getItem("gn.singlefile.wisp.cache.v1")||"null");
-    if(cached&&typeof cached.url==="string"&&/^wss?:\/\//i.test(cached.url))return cached.url;
-  }catch(e){}
-  return "";
+const isWisp=url=>typeof url==="string"&&/^wss:\/\//i.test(url);
+function wispUdpCheck(url,timeout){
+  return new Promise((resolve,reject)=>{
+    const started=performance.now();
+    const packet=(type,id,payload)=>{const out=new Uint8Array(5+payload.length);out[0]=type;new DataView(out.buffer).setUint32(1,id,true);out.set(payload,5);return out};
+    const text=s=>new TextEncoder().encode(s);
+    const query=new Uint8Array([0x46,0x46,1,0,0,1,0,0,0,0,0,0,7,...text("example"),3,...text("com"),0,0,1,0,1]);
+    let socket,finished=false;
+    const finish=fn=>{if(finished)return;finished=true;clearTimeout(timer);try{socket.close()}catch(e){}fn()};
+    const timer=setTimeout(()=>finish(()=>reject(new Error("udp check timed out"))),timeout);
+    try{socket=new WebSocket(url)}catch(e){finish(()=>reject(e));return}
+    socket.binaryType="arraybuffer";
+    socket.onerror=()=>finish(()=>reject(new Error("wisp socket failed")));
+    socket.onclose=()=>finish(()=>reject(new Error("wisp socket closed")));
+    let open=false;
+    socket.onmessage=event=>{
+      if(!(event.data instanceof ArrayBuffer)||event.data.byteLength<5)return;
+      const data=new Uint8Array(event.data),type=data[0],id=new DataView(event.data).getUint32(1,true);
+      if(!open&&type===3&&id===0){
+        open=true;
+        const host=text("8.8.8.8"),connect=new Uint8Array(3+host.length);
+        connect[0]=2;new DataView(connect.buffer).setUint16(1,53,true);connect.set(host,3);
+        socket.send(packet(1,1,connect));
+        socket.send(packet(2,1,query));
+        return;
+      }
+      if(id===1&&type===2)finish(()=>resolve(performance.now()-started));
+      else if(id===1&&type===4)finish(()=>reject(new Error("relay refused udp")));
+    };
+  });
 }
-function webbloxAddress(){
-  const server=funfriWispServer();
-  return WEBBLOX_BOOT+"#"+(server?encodeURIComponent("?wisp="+encodeURIComponent(server)):"");
+async function pickWebbloxWisp(){
+  const pick=globalThis.__funfriWispPick;
+  if(!pick)return "";
+  const live=pick.current;
+  if(isWisp(live)){
+    try{await wispUdpCheck(live,6000);return live}catch(e){}
+  }
+  const candidates=pick.candidates().filter(url=>url!==live);
+  const results=await Promise.all(candidates.map(async url=>{
+    try{await pick.probe(url)}catch(e){pick.reject(url);return null}
+    try{return{url,latency:await wispUdpCheck(url,6000)}}catch(e){return null}
+  }));
+  const best=results.filter(Boolean).sort((a,b)=>a.latency-b.latency)[0];
+  if(best){pick.confirm(best.url);return best.url}
+  throw new Error("no connection that can join games is reachable right now");
+}
+let webbloxRun=0;
+async function loadWebblox(frame){
+  const run=++webbloxRun;
+  loadingStart("webblox");
+  appLoadingStatus.textContent="finding a connection...";
+  let server;
+  try{server=await pickWebbloxWisp()}catch(err){if(run===webbloxRun)loadingError(err);return}
+  if(run!==webbloxRun||!frame.isConnected)return;
+  appLoadingStatus.textContent="loading...";
+  frame.addEventListener("load",()=>{if(run===webbloxRun)loadingDone();try{frame.focus()}catch(e){}},{once:true});
+  frame.src=WEBBLOX_BOOT+"#"+(server?encodeURIComponent("?wisp="+encodeURIComponent(server)):"");
 }
 function openWebblox(){
   if(!appView)return;
@@ -8640,23 +8686,24 @@ function openWebblox(){
   frame.setAttribute("allowfullscreen","");
   frame.setAttribute("data-funfri-trusted","");
   frame.removeAttribute("sandbox");
-  frame.src=webbloxAddress();
   appView.dataset.mode="webblox";
   (byId("app-stage")||appView).prepend(frame);
   appStatus.hidden=true;
-  byId("app-loading").hidden=true;
   byId("app-switch").hidden=true;
   byId("app-title").hidden=false;
   byId("app-title").textContent="WebBlox";
   barWire("app-home",closeWebblox);
   barWire("app-back",null);
-  barWire("app-reload",()=>{frame.src=webbloxAddress()});
+  barWire("app-reload",()=>loadWebblox(frame));
   appView.hidden=false;
   byId("home").hidden=true;
   document.body.classList.add("app-open");
-  frame.addEventListener("load",()=>{try{frame.focus()}catch(e){}});
+  loadWebblox(frame);
 }
 function closeWebblox(){
+  webbloxRun++;
+  loadingDone();
+  appLoading.hidden=true;
   byId("webblox-frame")?.remove();
   delete appView.dataset.mode;
   appView.hidden=true;
