@@ -396,6 +396,16 @@ html.scene-on .app-status{background-image:linear-gradient(rgba(var(--scene-ink)
 .app-view[data-mode="webblox"] #app-frame{display:none}
 .toast{position:fixed;left:50%;top:20px;z-index:40;padding:10px 16px;border:1px solid var(--line-strong);border-radius:10px;background-color:var(--panel);box-shadow:0 10px 30px var(--drop);color:var(--ink);font-family:var(--ui);font-weight:600;font-size:14px;letter-spacing:.01em;opacity:0;transform:translate(-50%,-8px);pointer-events:none;transition:opacity .25s ease,transform .25s cubic-bezier(.2,.7,.3,1)}
 .toast.show{opacity:1;transform:translate(-50%,0)}
+#update-note{width:min(400px,calc(100vw - 32px));max-height:none;margin:auto;padding:24px;border:1px solid var(--line-strong);border-radius:14px;background-color:var(--panel);box-shadow:0 24px 60px var(--drop);color:var(--ink);font-family:var(--ui)}
+#update-note::backdrop{background-color:rgba(0,0,0,.6)}
+#update-note[open]{animation:note-in .3s cubic-bezier(.2,.7,.3,1)}
+@keyframes note-in{from{opacity:0;transform:translateY(8px) scale(.98)}}
+#update-note h2{margin:0 0 14px;font-weight:600;font-size:22px;line-height:28px;letter-spacing:-.01em;color:var(--ink)}
+#update-note ul{display:grid;gap:8px;margin:0 0 22px;padding:0;list-style:none}
+#update-note li{display:flex;align-items:baseline;gap:10px;font-weight:500;font-size:17px;line-height:24px;color:var(--ink-soft)}
+#update-note li::before{content:"";flex:none;width:6px;height:6px;border-radius:50%;background-color:var(--accent);transform:translateY(-2px)}
+#update-note .chip{width:100%;height:42px;font-size:15px}
+@media (prefers-reduced-motion:reduce){#update-note[open]{animation:none}}
 .app-tile.tile-new{border-color:var(--line-strong);color:var(--ink);animation:tile-in .5s cubic-bezier(.2,.7,.3,1)}
 @keyframes tile-in{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}.app-tile.tile-new{animation:none}}
@@ -1026,7 +1036,7 @@ html.scene-on #notice {
 <section class="apps-section" aria-labelledby="apps-title"><h2 id="apps-title" class="sr-only">apps</h2><div id="apps" class="app-grid"></div></section>
 <section class="games-section" aria-labelledby="games-title"><h2 id="games-title" class="zone-label">games <span id="game-count"></span></h2><div id="games" class="game-grid"></div><p id="empty" class="zone-empty" hidden>no games match that. try another name.</p><button id="more" class="chip more" type="button" hidden>show more games</button></section>
 </main>
-<div id="mini-player" class="mini-player" role="region" aria-label="now playing" hidden><button id="mini-open" class="mini-track" type="button" aria-label="open music"><span class="mini-art"><svg class="icon" aria-hidden="true"><use href="#icon-music"></use></svg><img id="mini-cover" alt="" hidden></span><span class="mini-text"><strong id="mini-title">Nothing playing</strong><small id="mini-artist">FunFri Music</small></span></button><div class="mini-controls"><button id="mini-prev" class="mini-btn" type="button" aria-label="previous song"><svg class="icon icon-fill-tri" aria-hidden="true"><use href="#icon-skip-back"></use></svg></button><button id="mini-play" class="mini-btn mini-play" type="button" aria-label="play"><svg class="icon icon-solid" aria-hidden="true"><use id="mini-play-icon" href="#icon-play"></use></svg></button><button id="mini-next" class="mini-btn" type="button" aria-label="next song"><svg class="icon icon-fill-tri" aria-hidden="true"><use href="#icon-skip-forward"></use></svg></button><button id="mini-close" class="mini-btn" type="button" aria-label="stop music"><svg class="icon" aria-hidden="true"><use href="#icon-x"></use></svg></button></div></div>
+<dialog id="update-note" aria-labelledby="update-note-title"><form method="dialog"><h2 id="update-note-title">nov 4 update</h2><ul><li>overhauled lots of stuff</li><li>fixed a bug</li></ul><button class="chip chip-go" type="submit" autofocus>got it</button></form></dialog><div id="mini-player" class="mini-player" role="region" aria-label="now playing" hidden><button id="mini-open" class="mini-track" type="button" aria-label="open music"><span class="mini-art"><svg class="icon" aria-hidden="true"><use href="#icon-music"></use></svg><img id="mini-cover" alt="" hidden></span><span class="mini-text"><strong id="mini-title">Nothing playing</strong><small id="mini-artist">FunFri Music</small></span></button><div class="mini-controls"><button id="mini-prev" class="mini-btn" type="button" aria-label="previous song"><svg class="icon icon-fill-tri" aria-hidden="true"><use href="#icon-skip-back"></use></svg></button><button id="mini-play" class="mini-btn mini-play" type="button" aria-label="play"><svg class="icon icon-solid" aria-hidden="true"><use id="mini-play-icon" href="#icon-play"></use></svg></button><button id="mini-next" class="mini-btn" type="button" aria-label="next song"><svg class="icon icon-fill-tri" aria-hidden="true"><use href="#icon-skip-forward"></use></svg></button><button id="mini-close" class="mini-btn" type="button" aria-label="stop music"><svg class="icon" aria-hidden="true"><use href="#icon-x"></use></svg></button></div></div>
 <button type="button" id="to-top" aria-label="back to top"><svg class="icon" aria-hidden="true"><use href="#icon-arrow-up"></use></svg></button>
 <div id="loading" class="loading" hidden><div class="loading-box"><div class="loading-mark" aria-hidden="true"></div><h2 id="loading-title">opening app</h2><p id="status" role="status" aria-live="polite">loading...</p><div class="loading-actions"><button id="cancel" class="chip" type="button">back home</button><button id="retry" class="chip chip-go" type="button" hidden>try again</button></div></div></div>
 <div id="player" class="player" hidden><div class="player-bar"><div class="bar-group"><button id="player-back" class="chip" type="button" aria-label="back to games"><svg class="icon" aria-hidden="true"><use href="#icon-arrow-left"></use></svg><span class="label">back to games</span></button></div><span id="player-title"></span><div class="bar-group end"><button id="player-report" class="chip" type="button" aria-label="report this game as broken" title="report this game as broken"><svg class="icon" aria-hidden="true"><use href="#icon-flag"></use></svg><span class="label">report</span></button><button id="player-full" class="chip" type="button" aria-label="fullscreen"><svg class="icon" aria-hidden="true"><use href="#icon-expand"></use></svg><span class="label">fullscreen</span></button></div></div></div>
@@ -8589,7 +8599,7 @@ byId("apps")?.addEventListener("click",e=>{
   const tile=e.target.closest?e.target.closest("[data-app]"):null;
   if(tile&&tile.dataset.app==="music"&&musicMinimized){e.preventDefault();e.stopPropagation();restoreMusic()}
 },true);
-const WEBBLOX_BOOT="https://cdn.jsdelivr.net/gh/q8j-dev/quill-juniper-eea3@r202611040451/boot.svg";
+const WEBBLOX_BOOT="https://cdn.jsdelivr.net/gh/q8j-dev/quill-juniper-eea3@r202611040840/boot.svg";
 const WEBBLOX_KEY="funfri-webblox";
 const WEBBLOX_CODE="webblox";
 const WEBBLOX_ICON='<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></g></svg>';
@@ -8650,10 +8660,11 @@ function wispUdpCheck(url,timeout){
 }
 async function pickWebbloxWisp(){
   const pick=globalThis.__funfriWispPick;
-  if(!pick)return "";
+  if(!pick)return [];
+  const withBackups=first=>[first,...pick.candidates().filter(url=>url!==first)];
   const live=pick.current;
   if(isWisp(live)){
-    try{await wispUdpCheck(live,6000);return live}catch(e){}
+    try{await wispUdpCheck(live,6000);return withBackups(live)}catch(e){}
   }
   const candidates=pick.candidates().filter(url=>url!==live);
   const results=await Promise.all(candidates.map(async url=>{
@@ -8661,7 +8672,7 @@ async function pickWebbloxWisp(){
     try{return{url,latency:await wispUdpCheck(url,6000)}}catch(e){return null}
   }));
   const best=results.filter(Boolean).sort((a,b)=>a.latency-b.latency)[0];
-  if(best){pick.confirm(best.url);return best.url}
+  if(best){pick.confirm(best.url);return withBackups(best.url)}
   throw new Error("no connection that can join games is reachable right now");
 }
 let webbloxRun=0;
@@ -8669,12 +8680,12 @@ async function loadWebblox(frame){
   const run=++webbloxRun;
   loadingStart("webblox");
   appLoadingStatus.textContent="finding a connection...";
-  let server;
-  try{server=await pickWebbloxWisp()}catch(err){if(run===webbloxRun)loadingError(err);return}
+  let servers;
+  try{servers=await pickWebbloxWisp()}catch(err){if(run===webbloxRun)loadingError(err);return}
   if(run!==webbloxRun||!frame.isConnected)return;
   appLoadingStatus.textContent="loading...";
   frame.addEventListener("load",()=>{if(run===webbloxRun)loadingDone();try{frame.focus()}catch(e){}},{once:true});
-  frame.src=WEBBLOX_BOOT+"#"+(server?encodeURIComponent("?wisp="+encodeURIComponent(server)):"");
+  frame.src=WEBBLOX_BOOT+"#"+(servers.length?encodeURIComponent("?wisp="+encodeURIComponent(servers.join(","))):"");
 }
 function openWebblox(){
   if(!appView)return;
@@ -8810,6 +8821,17 @@ globalThis.__funfriBar={
     return {host:document.createElement("span"),status:appStatus};
   }
 };
+const UPDATE_KEY="funfri-update-nov4";
+(()=>{
+  const note=byId("update-note");
+  if(!note||typeof note.showModal!=="function")return;
+  let seen=false;
+  try{seen=localStorage.getItem(UPDATE_KEY)==="1"}catch(e){}
+  if(seen)return;
+  note.addEventListener("close",()=>{try{localStorage.setItem(UPDATE_KEY,"1")}catch(e){}},{once:true});
+  note.addEventListener("click",e=>{if(e.target===note)note.close()});
+  try{note.showModal()}catch(e){}
+})();
 
 })();</script>
 </body>
