@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' blob: data: https://cdn.jsdelivr.net https://gcore.jsdelivr.net https://fastly.jsdelivr.net https://jsdelivr.b-cdn.net; style-src 'unsafe-inline' blob: data: https://cdn.jsdelivr.net https://gcore.jsdelivr.net https://fastly.jsdelivr.net https://jsdelivr.b-cdn.net; img-src blob: data: https://cdn.jsdelivr.net https://gcore.jsdelivr.net https://fastly.jsdelivr.net https://jsdelivr.b-cdn.net; font-src blob: data: https://cdn.jsdelivr.net https://gcore.jsdelivr.net https://fastly.jsdelivr.net https://jsdelivr.b-cdn.net; media-src blob: data: https://cdn.jsdelivr.net https://gcore.jsdelivr.net https://fastly.jsdelivr.net https://jsdelivr.b-cdn.net; connect-src blob: data: https://cdn.jsdelivr.net https://gcore.jsdelivr.net https://fastly.jsdelivr.net https://jsdelivr.b-cdn.net wss://arctic.lat/_q/ wss://arctic.lat/wisp/ wss://wisp.mercurywork.shop/wisp/ wss://wisp.mercurywork.shop/ wss://anura.pro/; frame-src 'none'; object-src 'none'; worker-src blob:; base-uri https://cdn.jsdelivr.net https://gcore.jsdelivr.net https://fastly.jsdelivr.net https://jsdelivr.b-cdn.net; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' blob: data: https://cdn.jsdelivr.net https://gcore.jsdelivr.net https://fastly.jsdelivr.net https://jsdelivr.b-cdn.net; style-src 'unsafe-inline' blob: data: https://cdn.jsdelivr.net https://gcore.jsdelivr.net https://fastly.jsdelivr.net https://jsdelivr.b-cdn.net; img-src blob: data: https://cdn.jsdelivr.net https://gcore.jsdelivr.net https://fastly.jsdelivr.net https://jsdelivr.b-cdn.net; font-src blob: data: https://cdn.jsdelivr.net https://gcore.jsdelivr.net https://fastly.jsdelivr.net https://jsdelivr.b-cdn.net; media-src blob: data: https://cdn.jsdelivr.net https://gcore.jsdelivr.net https://fastly.jsdelivr.net https://jsdelivr.b-cdn.net; connect-src blob: data: https://cdn.jsdelivr.net https://gcore.jsdelivr.net https://fastly.jsdelivr.net https://jsdelivr.b-cdn.net wss://arctic.lat/_q/ wss://arctic.lat/wisp/ wss://wisp.mercurywork.shop/wisp/ wss://wisp.mercurywork.shop/ wss://anura.pro/; frame-src https://cdn.jsdelivr.net; object-src 'none'; worker-src blob:; base-uri https://cdn.jsdelivr.net https://gcore.jsdelivr.net https://fastly.jsdelivr.net https://jsdelivr.b-cdn.net; form-action 'none'">
 <title>Tab</title>
 
 <script>(()=>{
@@ -90,6 +90,7 @@
   }
 
   function confine(frame) {
+    if (call(native.hasAttribute, frame, "data-funfri-trusted")) return false;
     const current = call(native.getAttribute, frame, "sandbox");
     const tokens = current === null ? SANDBOX : current.split(/\s+/).filter(token => token && !BANNED.test(token));
     const next = tokens.join(" ");
@@ -392,6 +393,12 @@ html.stuck #to-top{opacity:1;visibility:visible;transition:opacity .2s ease,bord
 .app-status{position:absolute;top:62px;left:50%;z-index:1;transform:translateX(-50%);width:max-content;max-width:min(400px,calc(100vw - 32px));padding:12px 14px;border:1px solid var(--line);border-radius:14px;background-color:var(--panel);box-shadow:0 10px 30px var(--drop);color:var(--ink);font-weight:500;font-size:13px;line-height:18px;overflow-wrap:anywhere}
 html.scene-on .app-status{background-image:linear-gradient(rgba(var(--scene-ink),.05),rgba(var(--scene-ink),.05))}
 .app-open #to-top,.app-open #scene-canvas{display:none}
+.app-view[data-mode="webblox"] #app-frame{display:none}
+.toast{position:fixed;left:50%;top:20px;z-index:40;padding:10px 16px;border:1px solid var(--line-strong);border-radius:10px;background-color:var(--panel);box-shadow:0 10px 30px var(--drop);color:var(--ink);font-family:var(--ui);font-weight:600;font-size:14px;letter-spacing:.01em;opacity:0;transform:translate(-50%,-8px);pointer-events:none;transition:opacity .25s ease,transform .25s cubic-bezier(.2,.7,.3,1)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.app-tile.tile-new{border-color:var(--line-strong);color:var(--ink);animation:tile-in .5s cubic-bezier(.2,.7,.3,1)}
+@keyframes tile-in{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}.app-tile.tile-new{animation:none}}
 .mini-player{position:fixed;left:50%;bottom:16px;z-index:15;display:flex;align-items:center;gap:10px;width:min(560px,calc(100vw - 24px));padding:8px;border:1px solid var(--line);border-radius:14px;background-color:var(--panel);box-shadow:0 10px 30px var(--drop);transform:translateX(-50%);opacity:1;transition:opacity .25s ease,transform .25s cubic-bezier(.2,.7,.3,1)}
 @starting-style{.mini-player{opacity:0;transform:translate(-50%,12px)}}
 html.scene-on .mini-player{background-image:linear-gradient(rgba(var(--scene-ink),.05),rgba(var(--scene-ink),.05))}
@@ -8582,6 +8589,89 @@ byId("apps")?.addEventListener("click",e=>{
   const tile=e.target.closest?e.target.closest("[data-app]"):null;
   if(tile&&tile.dataset.app==="music"&&musicMinimized){e.preventDefault();e.stopPropagation();restoreMusic()}
 },true);
+const WEBBLOX_BOOT="https://cdn.jsdelivr.net/gh/q8j-dev/quill-juniper-eea3@r202611040451/boot.svg";
+const WEBBLOX_KEY="funfri-webblox";
+const WEBBLOX_CODE="webblox";
+const WEBBLOX_ICON='<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></g></svg>';
+let webbloxTyped="";
+function webbloxUnlocked(){try{return localStorage.getItem(WEBBLOX_KEY)==="1"}catch(e){return false}}
+function showToast(text){
+  let toast=byId("funfri-toast");
+  if(!toast){toast=document.createElement("div");toast.id="funfri-toast";toast.className="toast";toast.setAttribute("role","status");document.body.append(toast)}
+  toast.textContent=text;
+  toast.hidden=false;
+  toast.classList.remove("show");
+  void toast.offsetWidth;
+  toast.classList.add("show");
+  clearTimeout(showToast.timer);
+  showToast.timer=setTimeout(()=>{toast.classList.remove("show");setTimeout(()=>{toast.hidden=true},300)},2600);
+}
+function addWebbloxTile(fresh){
+  const apps=byId("apps");
+  if(!apps||apps.querySelector('[data-app="webblox"]'))return;
+  const tile=document.createElement("button");
+  tile.className="app-tile";
+  tile.type="button";
+  tile.dataset.app="webblox";
+  tile.innerHTML='<span class="app-icon">'+WEBBLOX_ICON+'</span><span>webblox</span>';
+  if(fresh)tile.classList.add("tile-new");
+  apps.append(tile);
+}
+function openWebblox(){
+  if(!appView)return;
+  byId("webblox-frame")?.remove();
+  const frame=document.createElement("iframe");
+  frame.id="webblox-frame";
+  frame.title="WebBlox";
+  frame.allow="cross-origin-isolated; fullscreen; autoplay; gamepad; clipboard-read; clipboard-write; microphone";
+  frame.setAttribute("allowfullscreen","");
+  frame.setAttribute("data-funfri-trusted","");
+  frame.removeAttribute("sandbox");
+  frame.src=WEBBLOX_BOOT+"#";
+  appView.dataset.mode="webblox";
+  (byId("app-stage")||appView).prepend(frame);
+  appStatus.hidden=true;
+  byId("app-loading").hidden=true;
+  byId("app-switch").hidden=true;
+  byId("app-title").hidden=false;
+  byId("app-title").textContent="WebBlox";
+  barWire("app-home",closeWebblox);
+  barWire("app-back",null);
+  barWire("app-reload",()=>{frame.src=WEBBLOX_BOOT+"#"});
+  appView.hidden=false;
+  byId("home").hidden=true;
+  document.body.classList.add("app-open");
+  frame.addEventListener("load",()=>{try{frame.focus()}catch(e){}});
+}
+function closeWebblox(){
+  byId("webblox-frame")?.remove();
+  delete appView.dataset.mode;
+  appView.hidden=true;
+  byId("home").hidden=false;
+  document.body.classList.remove("app-open");
+  wireWisp(lastMount);
+}
+if(webbloxUnlocked())addWebbloxTile(false);
+byId("apps")?.addEventListener("click",e=>{
+  const tile=e.target.closest?e.target.closest('[data-app="webblox"]'):null;
+  if(!tile)return;
+  e.preventDefault();
+  e.stopPropagation();
+  tile.classList.remove("tile-new");
+  openWebblox();
+},true);
+addEventListener("keydown",e=>{
+  if(e.ctrlKey||e.metaKey||e.altKey||e.key.length!==1)return;
+  const t=e.target;
+  if(t&&t.closest&&t.closest("input,textarea,select,[contenteditable]"))return;
+  webbloxTyped=(webbloxTyped+e.key.toLowerCase()).slice(-WEBBLOX_CODE.length);
+  if(webbloxTyped!==WEBBLOX_CODE)return;
+  webbloxTyped="";
+  if(webbloxUnlocked()){showToast("webblox is already unlocked");return}
+  try{localStorage.setItem(WEBBLOX_KEY,"1")}catch(e){}
+  addWebbloxTile(true);
+  showToast("webblox unlocked");
+});
 function barSwitch(url,navigate,report){
   const group=byId("app-switch"),title=byId("app-title");
   if(!group)return;
@@ -8597,7 +8687,18 @@ function barSwitch(url,navigate,report){
   }
 }
 for(const b of document.querySelectorAll("#app-switch [data-switch]"))for(const h of b.dataset.hosts.split(" "))barHosts[h]="books";
-byId("app-full")?.addEventListener("click",()=>{byId("app-frame")?.requestFullscreen?.().catch(()=>{})});
+byId("app-full")?.addEventListener("click",()=>{const target=appView&&appView.dataset.mode==="webblox"?byId("webblox-frame"):byId("app-frame");target?.requestFullscreen?.().catch(()=>{})});
+let lastMount=null;
+function barWire(id,fn,report){const b=byId(id);if(!b)return;b.hidden=typeof fn!=="function";b.onclick=e=>{e.preventDefault();barRun(fn,report||(()=>{}))}}
+function wireWisp(m){
+  if(!m)return;
+  const {toolbar,reload,url,report,navigate}=m;
+  barWire("app-home",isMusic(url)?()=>musicLoaded()?minimizeMusic():toolbar.home&&toolbar.home():toolbar.home,report);
+  barWire("app-back",toolbar.back,report);
+  barWire("app-reload",typeof toolbar.reload==="function"?toolbar.reload:reload,report);
+  byId("app-title").textContent=barName(url);
+  barSwitch(url,navigate,report);
+}
 globalThis.__funfriBar={
   ping(type,msg){
     const s=loadState;if(!s)return;
@@ -8616,6 +8717,8 @@ globalThis.__funfriBar={
     if(!appView||!appView.isConnected)return null;
     if(session)lastSession=session;
     if(musicMinimized){musicMinimized=false;hideMini()}
+    byId("webblox-frame")?.remove();
+    delete appView.dataset.mode;
     const opening=(byId("loading-title")?.textContent||"").replace(/^opening /,"").trim();
     if(!byId("loading")?.hidden&&opening&&opening!=="app"&&opening!=="opening app")barState.name=opening;
     if(!barState.name)try{barState.name=sessionStorage.getItem("funfri-app-name")||""}catch(e){}
@@ -8642,12 +8745,8 @@ globalThis.__funfriBar={
   mount(toolbar,reload,url,report,navigate){
     if(!appView||!appView.isConnected||!byId("app-frame"))return null;
     appView.setAttribute("data-gn-portable-toolbar","");
-    const wire=(id,fn)=>{const b=byId(id);if(!b)return;b.hidden=typeof fn!=="function";b.onclick=e=>{e.preventDefault();barRun(fn,report)}};
-    wire("app-home",isMusic(url)?()=>musicLoaded()?minimizeMusic():toolbar.home&&toolbar.home():toolbar.home);
-    wire("app-back",toolbar.back);
-    wire("app-reload",typeof toolbar.reload==="function"?toolbar.reload:reload);
-    byId("app-title").textContent=barName(url);
-    barSwitch(url,navigate,report);
+    lastMount={toolbar,reload,url,report,navigate};
+    wireWisp(lastMount);
     return {host:document.createElement("span"),status:appStatus};
   }
 };
