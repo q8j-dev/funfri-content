@@ -3,48 +3,22 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' blob: data: https://cdn.jsdelivr.net https://gcore.jsdelivr.net https://fastly.jsdelivr.net https://jsdelivr.b-cdn.net; style-src 'unsafe-inline' blob: data: https://cdn.jsdelivr.net https://gcore.jsdelivr.net https://fastly.jsdelivr.net https://jsdelivr.b-cdn.net; img-src blob: data: https://cdn.jsdelivr.net https://gcore.jsdelivr.net https://fastly.jsdelivr.net https://jsdelivr.b-cdn.net; font-src blob: data: https://cdn.jsdelivr.net https://gcore.jsdelivr.net https://fastly.jsdelivr.net https://jsdelivr.b-cdn.net; media-src blob: data: https://cdn.jsdelivr.net https://gcore.jsdelivr.net https://fastly.jsdelivr.net https://jsdelivr.b-cdn.net; connect-src blob: data: https://cdn.jsdelivr.net https://gcore.jsdelivr.net https://fastly.jsdelivr.net https://jsdelivr.b-cdn.net wss://arctic.lat/_q/ wss://arctic.lat/wisp/ wss://wisp.mercurywork.shop/wisp/ wss://wisp.mercurywork.shop/ wss://anura.pro/ wss://9000-firebase-funfri-1772115043605.cluster-lr6dwlc2lzbcctqhqorax5zmro.cloudworkstations.dev/wisp/; frame-src https://cdn.jsdelivr.net https://9000-firebase-funfri-1772115043605.cluster-lr6dwlc2lzbcctqhqorax5zmro.cloudworkstations.dev; object-src 'none'; worker-src blob:; base-uri https://cdn.jsdelivr.net https://gcore.jsdelivr.net https://fastly.jsdelivr.net https://jsdelivr.b-cdn.net; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' blob: data: https://cdn.jsdelivr.net https://gcore.jsdelivr.net https://fastly.jsdelivr.net https://jsdelivr.b-cdn.net; style-src 'unsafe-inline' blob: data: https://cdn.jsdelivr.net https://gcore.jsdelivr.net https://fastly.jsdelivr.net https://jsdelivr.b-cdn.net; img-src blob: data: https://cdn.jsdelivr.net https://gcore.jsdelivr.net https://fastly.jsdelivr.net https://jsdelivr.b-cdn.net; font-src blob: data: https://cdn.jsdelivr.net https://gcore.jsdelivr.net https://fastly.jsdelivr.net https://jsdelivr.b-cdn.net; media-src blob: data: https://cdn.jsdelivr.net https://gcore.jsdelivr.net https://fastly.jsdelivr.net https://jsdelivr.b-cdn.net; connect-src blob: data: https://cdn.jsdelivr.net https://gcore.jsdelivr.net https://fastly.jsdelivr.net https://jsdelivr.b-cdn.net wss://arctic.lat/_q/ wss://arctic.lat/wisp/ wss://wisp.mercurywork.shop/wisp/ wss://wisp.mercurywork.shop/ wss://anura.pro/ wss://*.cluster-lr6dwlc2lzbcctqhqorax5zmro.cloudworkstations.dev; frame-src https://cdn.jsdelivr.net https://*.cluster-lr6dwlc2lzbcctqhqorax5zmro.cloudworkstations.dev; object-src 'none'; worker-src blob:; base-uri https://cdn.jsdelivr.net https://gcore.jsdelivr.net https://fastly.jsdelivr.net https://jsdelivr.b-cdn.net; form-action 'none'">
 <title>Tab</title>
 
 <script>(()=>{
-  const box="https://9000-firebase-funfri-1772115043605.cluster-lr6dwlc2lzbcctqhqorax5zmro.cloudworkstations.dev";
   let here="";
   try{here=self.origin}catch(e){}
-  if(here===box){
-    globalThis.__funfriBoxOrigin=box;
-    globalThis.__funfriBoxWisp="wss://"+box.slice(8)+"/wisp/";
-    return;
+  if(/^https:\/\/\d+-firebase-funfri-1772115043605\.cluster-lr6dwlc2lzbcctqhqorax5zmro\.cloudworkstations\.dev$/.test(here)){
+    globalThis.__funfriBoxOrigin=here;
+    globalThis.__funfriBoxWisp="wss://"+here.slice(8)+"/wisp/";
   }
-  globalThis.__funfriGated=true;
-  const target=box+"/";
-  try{document.write("<plaintext hidden>")}catch(e){}
-  let framed=true;
-  try{framed=top!==self}catch(e){}
-  if(!framed){location.replace(target);return}
-  try{top.location.replace(target)}catch(e){}
-  const show=()=>{
-    const wrap=document.createElement("a");
-    wrap.href=target;
-    wrap.target="_top";
-    wrap.style.cssText="position:fixed;inset:0;display:grid;place-items:center;padding:16px;background:#0f1115;color:#e8eaee;font:500 17px/1.5 system-ui,sans-serif;text-align:center;text-decoration:none;cursor:pointer;z-index:2147483647";
-    const link=document.createElement("span");
-    link.textContent="continue to funfri";
-    link.style.cssText="display:inline-block;padding:12px 22px;border-radius:10px;background:#e8eaee;color:#0f1115;font-weight:600";
-    const card=document.createElement("div");
-    const note=document.createElement("p");
-    note.textContent="funfri moved to a new address";
-    note.style.cssText="margin:0 0 16px";
-    card.append(note,link);
-    wrap.append(card);
-    (document.body||document.documentElement).append(wrap);
-  };
-  document.body?show():document.addEventListener("DOMContentLoaded",show,{once:true});
 })();
 </script>
 <script>(()=>{
   const win = window;
   const nativeOpen = win.open;
-  const gated = location.protocol !== "blob:";
+  const gated = false;
   if (gated) {
     document.documentElement.classList.add("gated");
     Object.defineProperty(win, "__funfriGated", { value: true, configurable: false, writable: false });
