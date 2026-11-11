@@ -18,7 +18,7 @@
 <script>(()=>{
   const win = window;
   const nativeOpen = win.open;
-  const gated = false;
+  const gated = location.protocol !== "blob:";
   if (gated) {
     document.documentElement.classList.add("gated");
     Object.defineProperty(win, "__funfriGated", { value: true, configurable: false, writable: false });
